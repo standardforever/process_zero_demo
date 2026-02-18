@@ -1,0 +1,47 @@
+{
+  "erp_schema": {
+    "sales_tax_rate": {
+      "default_value": null,
+      "data_type": "string",
+      "description": "",
+      "required": true,
+      "rules": {}
+    }
+  },
+  "post_transformation_actions": {
+    "log_note": {
+      "enabled": true,
+      "action": "add_note",
+      "target": "invoice_record",
+      "section": "Log Notes",
+      "content": "AI Agent: This sales invoice record has been created through an autonomous process.",
+      "activity_type": null,
+      "subject": null,
+      "button_sequence": []
+    },
+    "scheduled_activity": {
+      "enabled": true,
+      "action": "create_activity",
+      "target": null,
+      "section": null,
+      "content": null,
+      "activity_type": "To Do",
+      "subject": "Invoice Review: Please check and supervise this AI-generated invoice.",
+      "button_sequence": [
+        "Activity",
+        "Scheduled Activity",
+        "To Do",
+        "Save"
+      ]
+    }
+  },
+  "metadata": {
+    "crm_columns": [
+      "sales_tax_rate"
+    ],
+    "erp_system": "Odoo",
+    "version": "1.0.0",
+    "last_updated": "2026-02-18T12:11:10Z",
+    "created_rule_prompts": []
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "version": "1.0",
+  "lastUpdated": "2026-02-17T16:54:41Z",
+  "customerNameMapping": {
+    "Universal Supplies": "Universal Supplies Limited"
+  },
+  "customerCountry": {
+    "_default": "United Kingdom",
+    "conditions": {
+      "Inner Mongolia Autonomous Region Test": "China"
+    }
+  },
+  "salesTaxRate": {
+    "_default": "20%",
+    "conditions": {
+      "MUNARAY": "0%",
+      "ACME Trading Corporation LTD": "10%"
+    }
+  },
+  "termsAndConditions": {
+    "_default": "Standard Terms & Conditions",
+    "conditions": {
+      "Inner Mongolia Autonomous Region Test": "China Customer"
+    }
+  },
+  "paymentTerms": {
+    "_default": "30 Days",
+    "conditions": {
+      "Sony Entertainment Incorporated": "15 Days",
+      "Universal Supplies Limited": "15 Days",
+      "Trading Direct Limited": "21 Days"
+    }
+  },
+  "paymentMethod": {
+    "_default": "Bank Deposit",
+    "conditions": {
+      "Red Internet Co. Limited": "BACS Direct Debit",
+      "EKHO IT Services": "Manual Payment"
+    }
+  },
+  "deliveryDays": {
+    "_default": 7,
+    "conditions": {
+      "ACME Trading Corporation LTD": 3,
+      "Universal Supplies Limited": 5
+    }
+  },
+  "customerReference": {
+    "customerNamePrefixLength": 3,
+    "includeYear": true,
+    "invoiceIdSource": "sales_request_ref",
+    "invoiceIdPrefix": "INV",
+    "invoiceIdPadLength": 4
+  },
+  "paymentReference": {
+    "customerNamePrefixLength": 5,
+    "crmSourceIdField": "crm_source_system_id",
+    "fallbackSourceIdField": "sales_request_ref",
+    "useInvoiceTotalWithoutDecimals": true
+  }
+}
