@@ -1,0 +1,58 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Python
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*.pyd
+*.so
+.python-version
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+.coverage.*
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+**/.venv/
+**/venv/
+**/env/
+
+# Node / Next.js
+node_modules/
+**/node_modules/
+.next/
+**/.next/
+out/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Runtime / logs
+*.log
+logs/
+
+# Local environment / secrets
+.env
+.env.*
+!.env.example
+!.env.sample
+
+# Local temp / artifacts
+tmp/
+temp/
+*.tmp
+*.bak
