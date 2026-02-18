@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Agent Live View</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            "bg-dark": "#0f1115",
+            "panel": "#151924",
+            "panel-light": "#1b2230",
+            "border-dark": "#2a3347",
+            "border-light": "#202636",
+            "text-primary": "#e8edf5",
+            "text-muted": "#a6b0c3",
+            "accent": "#4da3ff",
+            "accent-green": "#27c07d",
+            "danger": "#ff5f5f",
+          },
+        },
+      },
+    };
+  </script>
+</head>
+<body class="m-0 h-screen w-screen overflow-hidden bg-bg-dark text-text-primary font-sans">
+  <div class="flex h-full w-full gap-3 p-3 box-border">
+    <div class="relative flex-1 min-w-0 overflow-hidden rounded-lg bg-panel-light">
+      <iframe
+        id="vnc-frame"
+        class="block h-full w-full border-0 bg-black pointer-events-none locked [&.unlocked]:pointer-events-auto [&.locked]:pointer-events-none"
+        allow="fullscreen; clipboard-read; clipboard-write; autoplay"
+      ></iframe>
+      <div
+        id="intervention-overlay"
+        class="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/70 p-4 text-center text-lg text-white pointer-events-none"
+      >
+        <span id="overlay-title">AI Agent Active</span>
+        <span id="overlay-subtitle">Click "Request Control" to intervene</span>
+      </div>
+    </div>
+
+    <div class="flex w-[340px] flex-shrink-0 flex-col gap-4 rounded-lg bg-panel p-4 box-border">
+      <div class="text-lg font-semibold">Agent Live View</div>
+
+      <div class="flex flex-col gap-2">
+        <div class="flex items-center gap-2">
+          <span
+            class="inline-block h-2.5 w-2.5 rounded-full bg-[#666] [&.on]:bg-accent-green [&.warn]:bg-[#f0a500]"
+            id="agent-dot"
+          ></span>
+          <span id="agent-status">Agent: Stopped</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span
+            class="inline-block h-2.5 w-2.5 rounded-full bg-[#666] [&.on]:bg-accent-green [&.warn]:bg-[#f0a500]"
+            id="intervention-dot"
+          ></span>
+          <span id="intervention-status">Control: AI</span>
+        </div>
+      </div>
+
+      <input
+        id="startUrl"
+        class="w-full rounded-md border border-border-dark bg-bg-dark px-2.5 py-2 text-text-primary placeholder-text-muted focus:border-accent focus:outline-none"
+        placeholder="Start URL (optional)"
+      />
+
+      <div class="flex gap-2">
+        <button
+          id="btnStart"
+          class="flex-1 rounded-md bg-accent px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3b8ee6] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          ▶ Start Agent
+        </button>
+        <button
+          id="btnStop"
+          class="flex-1 rounded-md bg-danger px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#e14f4f] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          ⏹ Stop Agent
+        </button>
+      </div>
+
+      <div class="flex gap-2">
+        <button
+          id="btnRequestControl"
+          class="flex-1 rounded-md bg-[#f0a500] px-3 py-2.5 text-sm font-semibold text-[#101010] transition-colors hover:bg-[#d99400] disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          🖱️ Request Control
+        </button>
+        <button
+          id="btnReleaseControl"
+          class="flex-1 rounded-md bg-[#3f6fdd] px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#335fbe] disabled:cursor-not-allowed disabled:opacity-50"
+          disabled
+        >
+          ↩️ Release Control
+        </button>
+      </div>
+
+      <div class="rounded-md bg-[#111318] p-2.5">
+        <div class="mb-1.5 text-xs uppercase tracking-[0.08em] text-text-muted">
+          Connected Users
+        </div>
+        <div id="users-list" class="flex flex-col gap-1 text-xs">No users yet</div>
+      </div>
+
+      <div
+        id="log"
+        class="flex-1 overflow-y-auto rounded-md border border-border-light bg-bg-dark p-2.5 text-xs font-mono"
+      ></div>
+    </div>
+  </div>
+
+  <script>
+    function generateUserId() {
+      try {
+        if (window.crypto && typeof window.crypto.randomUUID === "function") {
+          return window.crypto.randomUUID();
+        }
+      } catch (_) {}
+
+      const randomPart = Math.random().toString(36).slice(2, 10);
+      return `user-${Date.now().toString(36)}-${randomPart}`;
+    }
+
+    const myUserId = generateUserId();
+    let agentRunning = false;
+    let interventionActive = false;
+    let interventionUser = null;
+    let iHaveControl = false;
+    let wsConnected = false;
+    let ws = null;
+
+    function normalizeHost(host) {
+      if (!host) return "127.0.0.1";
+      if (host === "localhost" || host === "0.0.0.0") return "127.0.0.1";
+      return host;
+    }
+
+    const params = new URLSearchParams(window.location.search);
+    const pageHost = window.location.hostname || "localhost";
+    const hostOverride = params.get("host");
+    const isReverseProxyMode = window.location.pathname.startsWith("/live/");
+    const wsHost = normalizeHost(params.get("wsHost") || hostOverride || pageHost);
+    const vncHost = normalizeHost(params.get("vncHost") || hostOverride || pageHost);
+    const wsProtocol = params.get("wsProtocol") || (window.location.protocol === "https:" ? "wss" : "ws");
+    const vncProtocol = params.get("vncProtocol") || window.location.protocol.replace(":", "") || "http";
+    const wsPort = params.get("wsPort") || (isReverseProxyMode ? window.location.port : "8765");
+    const vncPort = params.get("vncPort") || (isReverseProxyMode ? window.location.port : "7900");
+    const wsPath = params.get("wsPath") || (isReverseProxyMode ? "/live/ws/" : "/");
+    const vncPathRaw = params.get("vncPath") || (isReverseProxyMode ? "/live/vnc/" : "/");
+
+    function normalizePath(path) {
+      if (!path) return "/";
+      return path.startsWith("/") ? path : `/${path}`;
+    }
+
+    function buildBaseUrl(protocol, host, port, path) {
+      const normalizedPath = normalizePath(path);
+      return `${protocol}://${host}${port ? `:${port}` : ""}${normalizedPath}`;
+    }
+
+    const vncFrame = document.getElementById("vnc-frame");
+    const vncParams = new URLSearchParams({
+      autoconnect: "true",
+      resize: "scale",
+      reconnect: "true",
+      reconnect_delay: "1000",
+      show_dot: "true",
+    });
+    const vncBaseUrl = buildBaseUrl(vncProtocol, vncHost, vncPort, vncPathRaw);
+    const vncDelimiter = vncBaseUrl.includes("?") ? "&" : "?";
+    vncFrame.src = `${vncBaseUrl}${vncDelimiter}${vncParams.toString()}`;
+
+    function connectWebSocket() {
+      const wsUrl = buildBaseUrl(wsProtocol, wsHost, wsPort, wsPath || "/");
+
+      ws = new WebSocket(wsUrl);
+
+      ws.onopen = () => {
+        wsConnected = true;
+        appendLog(`Connected as ${shortId(myUserId)}`);
+        ws.send(JSON.stringify({ type: "hello", user_id: myUserId }));
+        updateUI();
+      };
+
+      ws.onclose = () => {
+        wsConnected = false;
+        appendLog("Disconnected. Reconnecting...");
+        updateUI();
+        setTimeout(connectWebSocket, 1000);
+      };
+
+      ws.onerror = () => {
+        wsConnected = false;
+        updateUI();
+      };
+
+      ws.onmessage = (event) => {
+        const msg = JSON.parse(event.data);
+
+        if (msg.type === "status") {
+          agentRunning = msg.agent_running;
+          interventionActive = msg.intervention_active;
+          interventionUser = msg.intervention_user;
+          iHaveControl = interventionUser === myUserId;
+          updateUI();
+        }
+
+        if (msg.type === "log") {
+          appendLog(msg.message);
+        }
+
+        if (msg.type === "users") {
+          updateUsersList(msg.users || []);
+        }
+      };
+    }
+
+    function updateUI() {
+      const overlay = document.getElementById("intervention-overlay");
+      const overlayTitle = document.getElementById("overlay-title");
+      const overlaySubtitle = document.getElementById("overlay-subtitle");
+      const agentStatus = document.getElementById("agent-status");
+      const interventionStatus = document.getElementById("intervention-status");
+      const agentDot = document.getElementById("agent-dot");
+      const interventionDot = document.getElementById("intervention-dot");
+
+      if (!wsConnected) {
+        agentStatus.textContent = "Agent: Disconnected";
+        interventionStatus.textContent = "Control: --";
+        agentDot.classList.remove("on");
+        interventionDot.classList.remove("on", "warn");
+
+        overlayTitle.textContent = "Disconnected";
+        overlaySubtitle.textContent = "Waiting for WebSocket connection";
+        overlay.classList.remove("hidden");
+        vncFrame.classList.add("locked");
+        vncFrame.classList.remove("unlocked");
+
+        document.getElementById("btnStart").disabled = true;
+        document.getElementById("btnStop").disabled = true;
+        document.getElementById("btnRequestControl").disabled = true;
+        document.getElementById("btnReleaseControl").disabled = true;
+        return;
+      }
+
+      agentStatus.textContent = agentRunning ? "Agent: Running" : "Agent: Stopped";
+      interventionStatus.textContent = interventionActive
+        ? `Control: ${iHaveControl ? "You" : shortId(interventionUser)}`
+        : "Control: AI";
+
+      agentDot.classList.toggle("on", agentRunning);
+      interventionDot.classList.toggle("on", iHaveControl);
+      interventionDot.classList.toggle("warn", interventionActive && !iHaveControl);
+
+      if (iHaveControl) {
+        vncFrame.classList.remove("locked");
+        vncFrame.classList.add("unlocked");
+        overlay.classList.add("hidden");
+      } else {
+        vncFrame.classList.add("locked");
+        vncFrame.classList.remove("unlocked");
+
+        if (interventionActive) {
+          overlayTitle.textContent = `User ${shortId(interventionUser)} is intervening`;
+          overlaySubtitle.textContent = "Control locked until release";
+          overlay.classList.remove("hidden");
+        } else if (agentRunning) {
+          overlayTitle.textContent = "AI Agent Active";
+          overlaySubtitle.textContent = "Click \"Request Control\" to intervene";
+          overlay.classList.remove("hidden");
+        } else {
+          overlayTitle.textContent = "Agent Stopped";
+          overlaySubtitle.textContent = "Click \"Request Control\" to take control";
+          overlay.classList.remove("hidden");
+        }
+      }
+
+      document.getElementById("btnStart").disabled = agentRunning;
+      document.getElementById("btnStop").disabled = !agentRunning;
+      document.getElementById("btnRequestControl").disabled = interventionActive;
+      document.getElementById("btnReleaseControl").disabled = !iHaveControl;
+    }
+
+    function updateUsersList(users) {
+      const list = document.getElementById("users-list");
+      list.innerHTML = "";
+
+      if (!users.length) {
+        list.textContent = "No users yet";
+        return;
+      }
+
+      users.forEach((id) => {
+        const item = document.createElement("div");
+        item.textContent = id === myUserId ? `${shortId(id)} (you)` : shortId(id);
+        list.appendChild(item);
+      });
+    }
+
+    function appendLog(message) {
+      const log = document.getElementById("log");
+      const entry = document.createElement("div");
+      entry.className = "mb-1.5 leading-snug";
+      const time = new Date().toLocaleTimeString();
+      const timeSpan = document.createElement("span");
+      timeSpan.className = "mr-1.5 text-text-muted";
+      timeSpan.textContent = `[${time}]`;
+      entry.appendChild(timeSpan);
+      entry.appendChild(document.createTextNode(message));
+      log.appendChild(entry);
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function shortId(id) {
+      if (!id) return "unknown";
+      return id.slice(0, 8);
+    }
+
+    document.getElementById("btnStart").onclick = () => {
+      const url = document.getElementById("startUrl").value.trim();
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "start", user_id: myUserId, url: url || null }));
+      }
+    };
+
+    document.getElementById("btnStop").onclick = () => {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "stop", user_id: myUserId }));
+      }
+    };
+
+    document.getElementById("btnRequestControl").onclick = () => {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "request_intervention", user_id: myUserId }));
+      }
+    };
+
+    document.getElementById("btnReleaseControl").onclick = () => {
+      if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: "release_intervention", user_id: myUserId }));
+      }
+    };
+
+    connectWebSocket();
+  </script>
+</body>
+</html>
