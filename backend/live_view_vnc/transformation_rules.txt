@@ -1,0 +1,82 @@
+# CRM TO ERP TRANSFORMATION RULES: SALES INVOICE GENERATION
+
+## OVERALL DIRECTIVE (POST-CREATION WORKFLOW)
+Context: Odoo ERP Environment
+After record creation, the AI Agent MUST:
+1. Navigate to 'Log Notes' and add: "AI Agent: This sales invoice record has been created through an autonomous process."
+2. Click 'Activity' -> 'Scheduled Activity' -> 'To Do'.
+3. Create Task Subject: "Invoice Review: Please check and supervise this AI-generated invoice."
+4. Action: Press 'Save' to confirm activity.
+
+## RULE 1 & 2: CUSTOMER NAME AND COUNTRY MAPPING
+| CRM Customer Name | ERP Customer Name | Country |
+| :--- | :--- | :--- |
+| ACME Trading Corporation Limited | ACME Trading Corporation LTD | United Kingdom |
+| ABC Trading | ABC Trading Limited | United Kingdom |
+| Sony Entertainment | Sony Entertainment Incorporated | United Kingdom |
+| Echo IT Services | EKHO IT Services | United Kingdom |
+| Inner Mongolia | Inner Mongolia Autonomous Region Test | China |
+| Munaray | MUNARAY | United States |
+| Red Internet | Red Internet Co. Limited | United Kingdom |
+| Trade Direct | Trading Direct Limited | United Kingdom |
+| Universal Studios | Universal Supplies Limited | United Kingdom |
+| Wraith Trading | Wraith Trading Limited | United Kingdom |
+| Veterinary Solutions | Veterinary Solutions Limited | United Kingdom |
+
+## RULE 3: SALES TAX RATE APPLICATION
+Default: 20%
+- If Customer = 'Inner Mongolia Autonomous Region Test' -> 0% (Export)
+- If Customer = 'MUNARAY' -> 0% (Export)
+- If Customer = 'Universal Supplies Limited' -> 5% (Special/Reduced)
+- If Customer = 'Veterinary Solutions Limited' -> Exempt
+- Else -> 20%
+
+## RULE 4: TERMS AND CONDITIONS ASSIGNMENT
+Default: Standard Terms & Conditions
+- If Customer = 'Inner Mongolia Autonomous Region Test' -> China Customer
+- If Customer = 'MUNARAY' -> US Customer
+- If Customer = 'Sony Entertainment Incorporated' -> VIP Customer
+- If Customer = 'Universal Supplies Limited' -> VIP Customer
+- Else -> Standard Terms & Conditions
+
+## RULE 5: CUSTOMER REFERENCE GENERATION
+Action: [First 3 letters of ERP Name] + [Current Year YYYY] + [ERP Invoice ID]
+Example: ACME Trading Corporation LTD (2024) INV0001 -> ACM2024INV0001
+
+## RULE 6: PAYMENT REFERENCE GENERATION
+Action: [First 5 letters of ERP Name] + [CRM Source System ID] + [Total Amount No Decimals]
+Example: MUNARAY (CUST12) Total 300.50 -> MUNARCUST12300
+
+## RULE 7: DELIVERY DATE CALCULATION
+Default: Invoice Date + 7 Days
+- If Customer = 'Inner Mongolia Autonomous Region Test' -> +21 Days
+- If Customer = 'MUNARAY' -> +14 Days
+- If Customer = 'ACME Trading Corporation LTD' -> +3 Days
+- If Customer = 'Universal Supplies Limited' -> +5 Days
+- Else -> +7 Days
+
+## RULE 8: PAYMENT METHOD ASSIGNMENT
+Default: Bank Deposit
+- If Customer = 'Inner Mongolia Autonomous Region Test' -> Manual Payment
+- If Customer = 'MUNARAY' -> Bank Deposit
+- If Customer = 'ABC Trading Limited' -> BACS Direct Debit
+- If Customer = 'Red Internet Co. Limited' -> BACS Direct Debit
+- If Customer = 'EKHO IT Services' -> Manual Payment
+- Else -> Bank Deposit
+
+## RULE 9: PAYMENT TERMS ASSIGNMENT
+Default: 30 Days
+- If Customer = 'Inner Mongolia Autonomous Region Test' -> 45 Days
+- If Customer = 'MUNARAY' -> 45 Days
+- If Customer = 'Sony Entertainment Incorporated' -> 15 Days
+- If Customer = 'Universal Supplies Limited' -> 15 Days
+- If Customer = 'Trading Direct Limited' -> 21 Days
+- If Customer = 'Veterinary Solutions Limited' -> 21 Days
+- Else -> 30 Days
+
+## RULE MANAGEMENT PROTOCOL (FOR AI AGENT)
+1. READ: Always load the full text before making changes.
+2. UPDATE: To edit a rule, find the ERP Customer Name and modify the specific line.
+3. DELETE: Remove the specific row from the table or the specific bullet point.
+4. NO DUPLICATES: Before adding a new customer, search the "Customer Name Mapping" table. If the CRM name exists, update the existing row instead of adding a new one.
+5. CONSISTENCY: If a name is changed in "Rule 1", ensure that name is updated in Rules 3 through 9.

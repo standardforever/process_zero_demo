@@ -1,0 +1,68 @@
+{
+  "crm_columns": {
+    "lead_name": {
+      "type": "string",
+      "required": true
+    },
+    "crm_id": {
+      "type": "string",
+      "required": true
+    },
+    "total": {
+      "type": "number",
+      "required": true
+    },
+    "invoice_date": {
+      "type": "date",
+      "required": true
+    },
+    "invoice_id": {
+      "type": "string",
+      "required": true
+    }
+  },
+  "erp_columns": {
+    "partner_name": {
+      "type": "string",
+      "required": true
+    },
+    "external_ref": {
+      "type": "string",
+      "required": true
+    },
+    "amount_total": {
+      "type": "number",
+      "required": true
+    },
+    "invoice_date": {
+      "type": "date",
+      "required": true
+    },
+    "name": {
+      "type": "string",
+      "required": true
+    }
+  },
+  "mapping": {
+    "lead_name": {
+      "erp_column": "partner_name",
+      "transform": "strip"
+    },
+    "crm_id": {
+      "erp_column": "external_ref"
+    },
+    "total": {
+      "erp_column": "amount_total"
+    },
+    "invoice_date": {
+      "erp_column": "invoice_date"
+    },
+    "invoice_id": {
+      "erp_column": "name"
+    }
+  },
+  "rules": {
+    "name_mapping": {}
+  },
+  "crm_records": {}
+}

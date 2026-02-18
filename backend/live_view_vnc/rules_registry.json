@@ -1,0 +1,9 @@
+{
+    "overall_directives": [],
+    "columns": {
+        "sales_tax_rate": {
+            "default": 0.2,
+            "overrides": {}
+        }
+    }
+}

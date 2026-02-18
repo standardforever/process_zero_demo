@@ -1,0 +1,27 @@
+version: "3.8"
+services:
+  chrome:
+    image: selenium/standalone-chrome:latest
+    shm_size: "2g"
+    ports:
+      - "4444:4444"  # Selenium WebDriver
+      - "7900:7900"  # noVNC viewer
+      - "5900:5900"  # VNC (optional, for native VNC clients)
+      - "9222:9222"  # Chrome DevTools Protocol (for browser_use)
+    environment:
+      - SE_VNC_NO_PASSWORD=true
+      - SE_SCREEN_WIDTH=1920
+      - SE_SCREEN_HEIGHT=1080
+      - SE_SCREEN_DEPTH=24
+      - SE_NODE_MAX_SESSIONS=1
+      - SE_START_XVFB=true
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4444/status"]
+      interval: 10s
+      timeout: 5s
+      retries: 3

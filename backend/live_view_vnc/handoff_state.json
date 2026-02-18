@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "reason": "Email input not found",
+  "context": {
+    "step": "login_email"
+  },
+  "blocker": null,
+  "checkpoint": {
+    "stage": "login",
+    "step": "email",
+    "timestamp": "2026-02-13T10:55:13.469446"
+  },
+  "invoice_data": null,
+  "catalog_used": false,
+  "force_search_more_taxes": false,
+  "force_search_more_products": false,
+  "result": {
+    "status": "success",
+    "fields_attempted": [],
+    "fields_filled": {},
+    "fields_failed": {},
+    "awaiting_human_decision": null,
+    "screenshot_before": null,
+    "screenshot_after": null,
+    "debug_screenshots": {},
+    "timestamp": "2026-02-13T10:54:48.772923",
+    "execution_time": 0.0,
+    "steps_taken": [
+      "Starting login flow",
+      "Waiting for page to load...",
+      "Already logged in: False",
+      "\u26a0 Timeout waiting for: email input",
+      "\u2717 Login email input not found",
+      "\u23f8\ufe0f Human intervention required: Email input not found"
+    ]
+  },
+  "current_url": null,
+  "screenshot_path": null,
+  "timestamp": "2026-02-13T10:55:28.907235"
+}

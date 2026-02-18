@@ -1,0 +1,43 @@
+{
+  "browser_connection_url": "ws://172.28.0.2:4444/session/5e10279193b33e09e19b649eb7ee2943/se/cdp",
+  "workflows": [
+    {
+      "name": "odoo_invoice_creation",
+      "description": "Navigate to Odoo and reach new invoice creation page",
+      "tab_config": {
+        "requires_new_tab": true,
+        "tab_reference": "odoo_tab"
+      },
+      "variables": {
+        "username": "martinm@processzero.co.uk",
+        "password": "0p9o8i7u^Y"
+      },
+      "tab_id": "F43D02092BD93E2BA4BAC0B98A709002",
+      "tab_url": "about:blank",
+      "tab_title": "about:blank",
+      "browser_context_id": "B47B99B1918127E6CD4B7F228DD51245"
+    },
+    {
+      "name": "sharepoint_crm_navigation",
+      "description": "Navigate to SharePoint Sales Pipeline CRM and authenticate",
+      "tab_config": {
+        "requires_new_tab": true,
+        "tab_reference": "spreadsheet_tab"
+      },
+      "variables": {
+        "email": "yusuf@clickbuy.ai",
+        "password": "Engr@Bash#123m"
+      },
+      "tab_id": "76E475E95B4E2DE686EA6D1E469F23AE",
+      "tab_url": "about:blank",
+      "tab_title": "about:blank",
+      "browser_context_id": "B47B99B1918127E6CD4B7F228DD51245"
+    }
+  ],
+  "global_settings": {
+    "timeout": 30,
+    "max_retries": 3,
+    "screenshot_on_error": true,
+    "headless": false
+  }
+}
