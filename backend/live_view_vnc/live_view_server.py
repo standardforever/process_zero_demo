@@ -194,10 +194,12 @@ class LiveViewServer:
                 self.agent_running = False
                 self.intervention_active = False
                 self.intervention_user = None
+                self.agent_task = None
             await self.broadcast_status()
 
     async def stop_agent(self) -> None:
         not_running = False
+        task_to_stop: asyncio.Task[None] | None = None
         async with self.state_lock:
             if not self.agent_running:
                 not_running = True
@@ -205,6 +207,7 @@ class LiveViewServer:
                 self.agent_running = False
                 self.intervention_active = False
                 self.intervention_user = None
+                task_to_stop = self.agent_task
 
         if not_running:
             await self.log("Agent not running")
@@ -212,13 +215,18 @@ class LiveViewServer:
 
         await self.broadcast_status()
 
-        if self.agent_task:
-            self.agent_task.cancel()
+        if task_to_stop:
+            task_to_stop.cancel()
             try:
-                await self.agent_task
+                await asyncio.wait_for(task_to_stop, timeout=10)
             except asyncio.CancelledError:
                 pass
-            self.agent_task = None
+            except asyncio.TimeoutError:
+                await self.log("Agent stop timeout; forcing browser cleanup")
+            finally:
+                async with self.state_lock:
+                    if self.agent_task is task_to_stop:
+                        self.agent_task = None
 
         await self._cleanup_driver()
         await self.log("Agent stopped")
@@ -226,12 +234,14 @@ class LiveViewServer:
     async def request_intervention(self, user_id: str) -> None:
         message = None
         async with self.state_lock:
+            if not self.agent_running:
+                message = "Agent is not running. Start the agent before requesting control."
             if self.intervention_active:
                 if self.intervention_user == user_id:
                     message = "You already have control"
                 else:
                     message = f"Control already held by {self.intervention_user}"
-            else:
+            elif message is None:
                 self.intervention_active = True
                 self.intervention_user = user_id
 

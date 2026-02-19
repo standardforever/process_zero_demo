@@ -35,6 +35,7 @@ class AgentController:
         try:
             import importlib
             import app as workflow_app
+            from service.workflow_executor import set_pause_check_callback
 
             cdp_url = None
             try:
@@ -70,7 +71,13 @@ class AgentController:
             else:
                 await self.log("No Selenium CDP endpoint detected. app.py will use config.json settings.")
 
-            result = await workflow_app.run_workflow("config.json")
+            # Let workflow actions respect live pause/stop control requests.
+            set_pause_check_callback(self.pause_check)
+            try:
+                result = await workflow_app.run_workflow("config.json")
+            finally:
+                set_pause_check_callback(None)
+
             final_step = result.get("current_step") if isinstance(result, dict) else "unknown"
             await self.log(f"app.py workflow finished (final step: {final_step})")
         except Exception as exc:

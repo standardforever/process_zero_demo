@@ -275,14 +275,14 @@
           overlay.classList.remove("hidden");
         } else {
           overlayTitle.textContent = "Agent Stopped";
-          overlaySubtitle.textContent = "Click \"Request Control\" to take control";
+          overlaySubtitle.textContent = "Click \"Start Agent\" to begin";
           overlay.classList.remove("hidden");
         }
       }
 
       document.getElementById("btnStart").disabled = agentRunning;
       document.getElementById("btnStop").disabled = !agentRunning;
-      document.getElementById("btnRequestControl").disabled = interventionActive;
+      document.getElementById("btnRequestControl").disabled = !agentRunning || interventionActive;
       document.getElementById("btnReleaseControl").disabled = !iHaveControl;
     }
 
