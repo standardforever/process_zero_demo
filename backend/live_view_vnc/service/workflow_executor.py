@@ -1,10 +1,20 @@
 # workflow_executor.py
-from typing import Any, Dict, Optional
+from typing import Any, Awaitable, Callable, Dict, Optional
 import asyncio
 from schemas.actions_schemas import (
     WorkflowExecutionContext, WorkflowStep, WorkflowDefinition
 )
 from registry.workflow_registry import workflow_registry
+
+_pause_check_callback: Optional[Callable[[], Awaitable[None]]] = None
+
+
+def set_pause_check_callback(
+    callback: Optional[Callable[[], Awaitable[None]]],
+) -> None:
+    """Register a cooperative pause/stop callback used before each step."""
+    global _pause_check_callback
+    _pause_check_callback = callback
 
 
 class WorkflowExecutor:
@@ -34,6 +44,10 @@ class WorkflowExecutor:
         Returns:
             Result of the action execution
         """
+        # Cooperative pause/stop checkpoint between workflow actions.
+        if _pause_check_callback is not None:
+            await _pause_check_callback()
+
         # Substitute variables in parameters
         parameters = self._substitute_variables(step.parameters, variables or {})
         
