@@ -668,29 +668,3 @@ async def setup_odoo_node(state: WorkflowGraphState) -> WorkflowGraphState:
             "error_message": str(e),
             "current_step": "odoo_setup_failed"
         }
-# ```
-
-# **Key improvements:**
-
-# 1. ✅ **Smart Recovery Checks** - Centralized location detection logic
-# 2. ✅ **No more "skip"** - Always checks where we are and jumps appropriately
-# 3. ✅ **Unknown page → restart** - Default action goes to `navigate_to_odoo`
-# 4. ✅ **Loop handling** - Uses `goto` to jump between steps
-# 5. ✅ **Variables support** - Uses credentials from config
-
-# **Example flow:**
-# ```
-# Current URL: https://process-zero.odoo.com/odoo/accounting
-
-# 🔍 Analyzing current location...
-# 🎯 Starting from: wait_for_invoicing_page (step 6/12)
-
-# [6] wait_for_invoicing_page ✓
-# [7] open_customers_dropdown
-#     🔍 Validating...
-#     ✗ Validation failed
-#     🔍 Checking current location...
-#     ⏭️  Jumping to: wait_for_invoicing_page
-
-# [6] wait_for_invoicing_page ✓
-# ...

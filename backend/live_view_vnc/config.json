@@ -1,5 +1,5 @@
 {
-  "browser_connection_url": "ws://172.28.0.2:4444/session/5e10279193b33e09e19b649eb7ee2943/se/cdp",
+  "browser_connection_url": "http://localhost:9222",
   "workflows": [
     {
       "name": "odoo_invoice_creation",
@@ -12,10 +12,10 @@
         "username": "martinm@processzero.co.uk",
         "password": "0p9o8i7u^Y"
       },
-      "tab_id": "F43D02092BD93E2BA4BAC0B98A709002",
-      "tab_url": "about:blank",
-      "tab_title": "about:blank",
-      "browser_context_id": "B47B99B1918127E6CD4B7F228DD51245"
+      "tab_id": "EFBD204A59AB487B39EB9CECE30BA59E",
+      "tab_url": "https://process-zero.odoo.com/odoo/customer-invoices/new",
+      "tab_title": "Draft Invoice",
+      "browser_context_id": "63D778E585EAB25A2A6F81DD2461A9A1"
     },
     {
       "name": "sharepoint_crm_navigation",
@@ -28,10 +28,10 @@
         "email": "yusuf@clickbuy.ai",
         "password": "Engr@Bash#123m"
       },
-      "tab_id": "76E475E95B4E2DE686EA6D1E469F23AE",
-      "tab_url": "about:blank",
-      "tab_title": "about:blank",
-      "browser_context_id": "B47B99B1918127E6CD4B7F228DD51245"
+      "tab_id": "958395B25455CD1D1D1C013868EB138F",
+      "tab_url": "https://pivotaluksolutionsltd-my.sharepoint.com/personal/martin_clickbuy_ai/Lists/Sales%20Pipeline%20CRM/AllItems.aspx",
+      "tab_title": "Martin McDonagh - Sales Pipeline CRM - All Items",
+      "browser_context_id": "63D778E585EAB25A2A6F81DD2461A9A1"
     }
   ],
   "global_settings": {

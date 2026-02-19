@@ -91,6 +91,10 @@ async def fill_invoice_node(state: WorkflowGraphState) -> WorkflowGraphState:
     invoice_ref = transformed_row.get("invoice_reference", "N/A")
     invoice_date = transformed_row.get("invoice_date", "")
     products = transformed_row.get("products", [])
+    payment_terms = transformed_row.get("payment_terms", "15 Days")
+    payment_method = transformed_row.get("payment_method", "Manual Payment")
+    sales_person = transformed_row.get("sales_person", "Martin McDonagh")
+    payment_reference = transformed_row.get("payment_reference", "")
     
     print(f"\n  Invoice: {invoice_ref}")
     print(f"  Customer: {customer_name}")
@@ -199,18 +203,18 @@ async def fill_invoice_node(state: WorkflowGraphState) -> WorkflowGraphState:
         # STEP 4: FILL PAYMENT TERMS (JavaScript)
         # ============================================
         
-        print(f"\n  [4/7] Filling payment terms: 15 Days...")
+        print(f"\n  [4/7] Filling payment terms: {payment_terms}...")
         
-        payment_script = get_fill_payment_terms_script("15 Days")
+        payment_script = get_fill_payment_terms_script(payment_terms)
         payment_result = await page.evaluate(payment_script)
         if isinstance(payment_result, str):
             payment_result = json.loads(payment_result)
         
         if payment_result.get("success"):
             if payment_result.get("created"):
-                print(f"  ✅ Payment terms created: 15 Days")
+                print(f"  ✅ Payment terms created: {payment_terms}")
             else:
-                print(f"  ✅ Payment terms filled: 15 Days")
+                print(f"  ✅ Payment terms filled: {payment_terms}")
         else:
             print(f"  ⚠️  Payment terms fill failed: {payment_result.get('error')}, continuing...")
             

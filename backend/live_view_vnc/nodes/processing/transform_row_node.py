@@ -11,8 +11,9 @@ from datetime import datetime
 from typing import Dict, Any, List, Optional, Tuple
 import json
 import re
+from pathlib import Path
 
-from rules import RuleEngine, OpenAI
+from openai import OpenAI
 
 
 class CRMPreprocessor:
@@ -24,7 +25,8 @@ class CRMPreprocessor:
     def normalize(self, raw_crm: Dict) -> Dict:
         """Transform flat CRM structure into nested/normalized structure."""
         normalized = raw_crm.copy()
-
+        del normalized["row_index"]
+   
         # Extract products
         products = self._extract_products(raw_crm)
         normalized["products_normalized"] = products
@@ -82,12 +84,30 @@ class CRMPreprocessor:
 
 
 class TransformationEngine:
-    def __init__(self, rule_engine: RuleEngine, api_key: str, model: str = "gpt-4o"):
-        self.rule_engine   = rule_engine
+    def __init__(self, rules_file: str,  api_key: str, model: str = "gpt-4o"):
+        self.rules_file = Path(rules_file)
+        self.schema   = self._load_schema()
         self.preprocessor  = CRMPreprocessor()
         self.client        = OpenAI(api_key=api_key)
         self.model         = model
 
+    def _load_schema(self) -> Dict:
+        """Load the transformation schema from file"""
+        try:
+            with open(self.rules_file, 'r') as f:
+                return json.load(f)
+        except FileNotFoundError:
+            return {
+                "erp_schema": {},
+                "post_transformation_actions": {},
+                "metadata": {
+                    "crm_columns": [],
+                    "erp_system": "Odoo",
+                    "version": "1.0.0",
+                    "last_updated": datetime.utcnow().isoformat()
+                }
+            }
+            
     def _crm_value_to_rule_key(self, value: str) -> str:
         """Convert a CRM value to its expected rule key"""
         return re.sub(r'[^a-z0-9]', '_', str(value).lower()).strip('_')
@@ -105,8 +125,7 @@ class TransformationEngine:
             if isinstance(value, (str, int, float)):
                 key = self._crm_value_to_rule_key(value)
                 crm_lookup_keys[key] = {"crm_column": col, "original_value": value}
-
-        for erp_column, column_config in self.rule_engine.schema["erp_schema"].items():
+        for erp_column, column_config in self.schema["erp_schema"].items():
             default_value = column_config.get("default_value")
             data_type     = column_config.get("data_type")
             description   = column_config.get("description", "")
@@ -115,12 +134,12 @@ class TransformationEngine:
 
             # Fast O(1) lookup
             for rule_key in crm_lookup_keys:
-                if rule_key in rules and rules[rule_key].get("enabled", True):
-                    matched_rules[rule_key] = rules[rule_key]
+                if rule_key in rules:
+                    matched_rules[rule_key] = rules[rule_key]     
 
             # Handle not_null / is_null
             for rule_name, rule_data in rules.items():
-                if rule_name in matched_rules or not rule_data.get("enabled", True):
+                if rule_name in matched_rules:
                     continue
 
                 for condition in rule_data.get("conditions", []):
@@ -152,65 +171,163 @@ class TransformationEngine:
 
         return candidates, errors
 
+#     def _build_llm_prompt(self, crm_data: Dict, candidates: Dict) -> str:
+#         """Build generic prompt that tells LLM to follow the provided rules"""
+
+#         return f"""You are a CRM to ERP data transformation engine.
+
+# Transform the CRM record into an ERP invoice by applying the transformation rules provided.
+
+# ---
+# **CRM Input:**
+# {json.dumps(crm_data, indent=2)}
+
+# ---
+# **Transformation Rules (by ERP column):**
+# {json.dumps(candidates, indent=2)}
+
+# ---
+# **Instructions:**
+
+# For each ERP column in the transformation rules:
+
+# 1. If `matched_rules` is not empty:
+#    - Read the conditions and transformation from the matched rule
+#    - Apply the transformation based on the action type:
+#      * `set_value`: Use the specified value
+#      * `copy_value`: Copy from source_crm_column
+#      * `calculate`: Evaluate the formula using CRM data
+#      * `concat`: Concatenate the specified values
+
+# 2. If `matched_rules` is empty and `default_value` exists:
+#    - Use the default_value
+
+# 3. If `matched_rules` is empty and `default_value` is null:
+#    - Set the field to null
+
+# 4. For the `products` array:
+#    - Transform the products_normalized array from CRM
+#    - For each product, copy: product_code, description, quantity, unit_price, discount_percent
+#    - Apply tax rules based on the matched_rules for the customer
+#    - Tax should be a string with percentage (e.g., "20%", "0%", "Exempt")
+
+# Respond ONLY with valid JSON in this exact format:
+# {{
+#   "invoice_reference": "...",
+#   "customer_name": "...",
+#   "invoice_date": "YYYY-MM-DD",
+#   "terms_and_conditions": "...",
+#   "payment_method": "...",
+#   "products": [
+#     {{
+#       "product_code": "...",
+#       "description": "...",
+#       "quantity": 0,
+#       "unit_price": 0.0,
+#       "discount_percent": 0.0,
+#       "tax": "..."
+#     }}
+#   ],
+#   "delivery_address": "...",
+#   "notes": "..."
+# }}"""
+
+
     def _build_llm_prompt(self, crm_data: Dict, candidates: Dict) -> str:
         """Build generic prompt that tells LLM to follow the provided rules"""
+        
+        # Define the fixed structure for known fields
+        fixed_structure = {
+            "invoice_reference": "...",
+            "customer_name": "...",
+            "invoice_date": "YYYY-MM-DD",
+            "terms_and_conditions": "...",
+            "payment_method": "...",
+            "products": [
+                {
+                    "product_code": "...",
+                    "description": "...",
+                    "quantity": 0,
+                    "unit_price": 0.0,
+                    "discount_percent": 0.0,
+                    "tax": "..."
+                }
+            ],
+            "delivery_address": "...",
+            "notes": "..."
+        }
+        
+        # Add any additional ERP columns not in the fixed structure
+        for erp_column, config in candidates.items():
+            if erp_column not in fixed_structure:
+                data_type = config.get("data_type")
+                
+                if data_type == "array":
+                    fixed_structure[erp_column] = []
+                elif data_type == "number":
+                    fixed_structure[erp_column] = 0
+                elif data_type == "date":
+                    fixed_structure[erp_column] = "YYYY-MM-DD"
+                elif data_type == "boolean":
+                    fixed_structure[erp_column] = False
+                else:  # string, object, etc.
+                    fixed_structure[erp_column] = "..."
+        
+        # Format as JSON structure for the prompt
+        response_structure = json.dumps(fixed_structure, indent=2)
+        
         return f"""You are a CRM to ERP data transformation engine.
 
-Transform the CRM record into an ERP invoice by applying the transformation rules provided.
+    Transform the CRM record into an ERP invoice by applying the transformation rules provided.
 
----
-**CRM Input:**
-{json.dumps(crm_data, indent=2)}
+    ---
+    **CRM Input:**
+    {json.dumps(crm_data, indent=2)}
 
----
-**Transformation Rules (by ERP column):**
-{json.dumps(candidates, indent=2)}
+    ---
+    **Transformation Rules (by ERP column):**
+    {json.dumps(candidates, indent=2)}
 
----
-**Instructions:**
+    ---
+    **Instructions:**
 
-For each ERP column in the transformation rules:
+    For each ERP column in the transformation rules:
 
-1. If `matched_rules` is not empty:
-   - Read the conditions and transformation from the matched rule
-   - Apply the transformation based on the action type:
-     * `set_value`: Use the specified value
-     * `copy_value`: Copy from source_crm_column
-     * `calculate`: Evaluate the formula using CRM data
-     * `concat`: Concatenate the specified values
+    1. If `matched_rules` is not empty:
+    - Read the conditions and transformation from the matched rule
+    - Apply the transformation based on the action type:
+        * `set_value`: Use the specified value
+        * `copy_value`: Copy from source_crm_column
+        * `calculate`: Evaluate the formula using CRM data
+        * `concat`: Concatenate the specified values
 
-2. If `matched_rules` is empty and `default_value` exists:
-   - Use the default_value
+    2. If `matched_rules` is empty and `default_value` exists:
+    - Use the default_value
 
-3. If `matched_rules` is empty and `default_value` is null:
-   - Set the field to null
+    3. If `matched_rules` is empty and `default_value` is null:
+    - Set the field to null
 
-4. For the `products` array:
-   - Transform the products_normalized array from CRM
-   - For each product, copy: product_code, description, quantity, unit_price, discount_percent
-   - Apply tax rules based on the matched_rules for the customer
-   - Tax should be a string with percentage (e.g., "20%", "0%", "Exempt")
+    4. For the `products` array:
+    - Transform the products_normalized array from CRM
+    - For each product, include: product_code, description, quantity, unit_price, discount_percent
+    - Apply tax transformation rules to set the tax field for each product
+    - Tax should be a string with percentage (e.g., "20%", "0%", "Exempt")
 
-Respond ONLY with valid JSON in this exact format:
-{{
-  "invoice_reference": "...",
-  "customer_name": "...",
-  "invoice_date": "YYYY-MM-DD",
-  "terms_and_conditions": "...",
-  "payment_method": "...",
-  "products": [
-    {{
-      "product_code": "...",
-      "description": "...",
-      "quantity": 0,
-      "unit_price": 0.0,
-      "discount_percent": 0.0,
-      "tax": "..."
-    }}
-  ],
-  "delivery_address": "...",
-  "notes": "..."
-}}"""
+    5. For date fields:
+    - Format dates as YYYY-MM-DD
+    - Evaluate any date calculation formulas (e.g., invoice_date + timedelta(days=21))
+
+    6. For number fields:
+    - Return as numeric value, not string
+
+    Respond ONLY with valid JSON matching this exact structure:
+    {response_structure}
+
+    CRITICAL: 
+    - Include ALL fields in your response
+    - Follow the exact structure shown above
+    - Use null for fields with no value
+    """
 
     def _call_llm(self, prompt: str) -> Dict:
         """Call LLM for transformation - returns the clean invoice data"""
@@ -251,6 +368,9 @@ Respond ONLY with valid JSON in this exact format:
         try:
             prompt         = self._build_llm_prompt(normalized_crm, candidates)
             erp_invoice    = self._call_llm(prompt)
+            
+            print(erp_invoice)
+            print("\n\n\n\n")
 
             return {
                 "status":         "success",
@@ -413,9 +533,9 @@ async def transform_row_node(state: WorkflowGraphState) -> WorkflowGraphState:
     # ============================================
     
     try:
-        rule_engine = RuleEngine("transformation_rules.json")
+       
         transformer = TransformationEngine(
-            rule_engine=rule_engine,
+            rules_file="transformation_rules.json",
             api_key=os.getenv("OPENAI_API_KEY", '')
         )
         
@@ -563,7 +683,9 @@ async def transform_row_node(state: WorkflowGraphState) -> WorkflowGraphState:
         # ============================================
         # DISPLAY TRANSFORMED DATA
         # ============================================
-        
+        print('\n\n\n *****')
+        print(invoice_data)
+        print('\n\n\n *****')
         print(f"\n  ✅ Transformation successful!")
         print(f"\n  📤 Transformed Invoice Data:")
         print(f"    Invoice Ref: {invoice_data.get('invoice_reference')}")

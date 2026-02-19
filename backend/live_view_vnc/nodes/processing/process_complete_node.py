@@ -1,6 +1,6 @@
 from utils.workflow_graph_state import WorkflowGraphState
 
-def process_complete_node(state: WorkflowGraphState) -> WorkflowGraphState:
+async def process_complete_node(state: WorkflowGraphState) -> WorkflowGraphState:
     """
     Final success handler before ending workflow
     """
@@ -9,6 +9,9 @@ def process_complete_node(state: WorkflowGraphState) -> WorkflowGraphState:
     print("="*60)
 
     workflows = state.get("workflows", [])
+    
+    browser_instance = state.get('browser_instance')
+    await browser_instance.stop()
 
     # Find spreadsheet workflow
     spreadsheet_workflow = None

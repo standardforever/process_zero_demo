@@ -1,7 +1,13 @@
 {
   "erp_schema": {
-    "customer": {
-      "default_value": null,
+     "invoice_reference": {
+      "default_value": "same as sales_request_ref in crm",
+      "data_type": "string",
+      "description": "invoice reference id",
+      "rules": {}
+    },
+    "customer_name": {
+      "default_value": "same as customer_company in crm",
       "data_type": "string",
       "description": "ERP customer name mapped from CRM",
       "rules": {
@@ -239,13 +245,13 @@
       }
     },
     "invoice_date": {
-      "default_value": "current date",
+      "default_value": "current date or same as date_raised",
       "data_type": "date",
       "description": "Invoice date for the sales invoice",
       "rules": {}
     },
     "payment_terms": {
-      "default_value": null,
+      "default_value": "15 Days",
       "data_type": "string",
       "description": "Payment terms applied to the invoice",
       "rules": {
@@ -706,7 +712,7 @@
       }
     },
     "terms_and_conditions": {
-      "default_value": null,
+      "default_value": "None",
       "data_type": "string",
       "description": "terms_and_conditions generated for the invoice",
       "rules": {
@@ -820,15 +826,26 @@
   },
   "metadata": {
     "crm_columns": [
-      "customer_name",
+      "customer_company",
+      "customer_contact",
+      "trading_address",
       "country",
       "invoice_date",
       "invoice_id",
-      "crm_source_id",
-      "invoice_total"
+      "sales_request_ref",
+      "invoice_total",
+      "date_raised",
+      "sales_person",
+      "status",
+      "product",
+      "quantity",
+      "sales_discount_percent",
+      "price_per_unit"
+
+
     ],
     "erp_system": "Odoo",
     "version": "1.0.0",
-    "last_updated": "2026-02-18T16:28:09.368598"
+    "last_updated": "2026-02-19T12:33:50.299260"
   }
 }

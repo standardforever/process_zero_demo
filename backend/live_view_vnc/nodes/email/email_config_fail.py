@@ -6,11 +6,13 @@ from utils.workflow_graph_state import WorkflowGraphState
 
 
 
-def email_failure_node(state: WorkflowGraphState) -> WorkflowGraphState:
+async def email_failure_node(state: WorkflowGraphState) -> WorkflowGraphState:
     """
     Send failure email and gracefully stop workflow
     """
     print("📧 Node: Sending failure notification email...")
+    browser_instance = state.get('browser_instance')
+    await browser_instance.stop()
 
     error = state.get("error_message", "Unknown error")
     step = state.get("current_step", "unknown_step")

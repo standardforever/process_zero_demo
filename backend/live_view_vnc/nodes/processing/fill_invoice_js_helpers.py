@@ -8,9 +8,77 @@ import json
 # JAVASCRIPT HELPER SCRIPTS
 # ============================================
 
+# def get_fill_customer_script(customer_name: str) -> str:
+#     """JavaScript to fill customer combobox field and pick the first result"""
+#     import json
+#     customer_name_json = json.dumps(customer_name)
+    
+#     return f"""
+# () => {{
+#     return (async () => {{
+#         const CUSTOMER_NAME = {customer_name_json};
+        
+#         async function humanType(element, text) {{
+#             element.focus();
+#             element.click();
+            
+#             for (let i = 0; i < text.length; i++) {{
+#                 const char = text[i];
+#                 element.value = text.substring(0, i + 1);
+#                 element.dispatchEvent(new KeyboardEvent('keydown', {{ key: char, bubbles: true }}));
+#                 element.dispatchEvent(new KeyboardEvent('keypress', {{ key: char, bubbles: true }}));
+#                 element.dispatchEvent(new Event('input', {{ bubbles: true }}));
+#                 element.dispatchEvent(new KeyboardEvent('keyup', {{ key: char, bubbles: true }}));
+#                 await new Promise(resolve => setTimeout(resolve, Math.random() * 100 + 50));
+#             }}
+#             element.dispatchEvent(new Event('change', {{ bubbles: true }}));
+#         }}
+        
+#         function wait(ms) {{
+#             return new Promise(resolve => setTimeout(resolve, ms));
+#         }}
+        
+#         try {{
+#             const inputField = document.querySelector('input[placeholder*="Search a name"]') ||
+#                               document.querySelector('input[placeholder*="Tax ID"]');
+            
+#             if (!inputField) {{
+#                 return {{ success: false, error: "Customer input field not found" }};
+#             }}
+            
+#             inputField.click();
+#             inputField.focus();
+#             await wait(1000);
+            
+#             inputField.value = '';
+#             inputField.dispatchEvent(new Event('input', {{ bubbles: true }}));
+#             await humanType(inputField, CUSTOMER_NAME);
+#             await wait(3000);
+            
+#             const dropdownOptions = Array.from(document.querySelectorAll('[role="option"]'));
+            
+#             if (dropdownOptions.length === 0) {{
+#                 return {{ success: false, error: "CUSTOMER_NOT_IN_DATABASE" }};
+#             }}
+            
+#             const firstOption = dropdownOptions[0];
+#             firstOption.click();
+#             await wait(2000);
+            
+#             return {{ success: true, error: null }};
+            
+#         }} catch (e) {{
+#             return {{ success: false, error: e.message }};
+#         }}
+#     }})();
+# }}
+# """.strip()
+
+
+
 def get_fill_customer_script(customer_name: str) -> str:
-    """JavaScript to fill customer combobox field and pick the first result"""
-    import json
+    """JavaScript to fill customer combobox field"""
+    # Use json.dumps for safe escaping
     customer_name_json = json.dumps(customer_name)
     
     return f"""
@@ -61,8 +129,17 @@ def get_fill_customer_script(customer_name: str) -> str:
                 return {{ success: false, error: "CUSTOMER_NOT_IN_DATABASE" }};
             }}
             
-            const firstOption = dropdownOptions[0];
-            firstOption.click();
+            const customerNameLower = CUSTOMER_NAME.toLowerCase().trim();
+            const matchingOption = dropdownOptions.find(option => {{
+                const optionTextLower = option.textContent.trim().toLowerCase();
+                return optionTextLower === customerNameLower;
+            }});
+            
+            if (!matchingOption) {{
+                return {{ success: false, error: "CUSTOMER_NOT_IN_DATABASE" }};
+            }}
+            
+            matchingOption.click();
             await wait(2000);
             
             return {{ success: true, error: null }};
@@ -73,7 +150,6 @@ def get_fill_customer_script(customer_name: str) -> str:
     }})();
 }}
 """.strip()
-
 
 
 
