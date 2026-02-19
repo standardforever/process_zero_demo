@@ -44,6 +44,7 @@ def _default_schema_store() -> SchemaStore:
         },
         metadata=SchemaStoreMetadata(
             crm_columns=[],
+            notification_emails=[],
             erp_system="Odoo",
             version="1.0.0",
             last_updated=_utc_now_iso(),
@@ -67,6 +68,15 @@ def _normalize_column_name(name: str) -> str:
     return snake
 
 
+def _normalize_email(email: str) -> str:
+    cleaned = str(email).strip().lower()
+    if not cleaned:
+        raise SchemaStoreValidationError("Email cannot be empty")
+    if not re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", cleaned):
+        raise SchemaStoreValidationError(f"Invalid email address: {cleaned}")
+    return cleaned
+
+
 def _normalize_store_for_save(store: SchemaStore) -> SchemaStore:
     normalized_erp_schema: dict[str, ERPSchemaColumn] = {}
     for key, value in store.erp_schema.items():
@@ -81,6 +91,17 @@ def _normalize_store_for_save(store: SchemaStore) -> SchemaStore:
             seen.add(normalized)
             normalized_crm_columns.append(normalized)
     store.metadata.crm_columns = normalized_crm_columns
+
+    normalized_notification_emails: list[str] = []
+    seen_emails: set[str] = set()
+    for item in store.metadata.notification_emails:
+        normalized_email = _normalize_email(item)
+        if normalized_email not in seen_emails:
+            seen_emails.add(normalized_email)
+            normalized_notification_emails.append(normalized_email)
+
+    # Current product rule: keep exactly one notification email max.
+    store.metadata.notification_emails = normalized_notification_emails[:1]
     return store
 
 
@@ -139,12 +160,17 @@ def get_schema_store_status(store: SchemaStore | None = None) -> dict[str, Any]:
     schema_store = store or load_schema_store()
     erp_count = len(schema_store.erp_schema)
     crm_count = len([item for item in schema_store.metadata.crm_columns if isinstance(item, str) and item.strip()])
+    email_count = len(
+        [item for item in schema_store.metadata.notification_emails if isinstance(item, str) and item.strip()]
+    )
     return {
         "erp_columns_count": erp_count,
         "crm_columns_count": crm_count,
+        "notification_emails_count": email_count,
         "has_erp_columns": erp_count > 0,
         "has_crm_columns": crm_count > 0,
-        "can_use_chat": erp_count > 0 and crm_count > 0,
+        "has_notification_emails": email_count > 0,
+        "can_use_chat": erp_count > 0 and crm_count > 0 and email_count > 0,
     }
 
 
@@ -196,3 +222,40 @@ def delete_crm_column(column_name: str) -> SchemaStore:
         raise SchemaStoreNotFoundError(f"CRM column not found: {name}") from exc
 
     return save_schema_store(store)
+
+
+def add_notification_email(email: str) -> SchemaStore:
+    normalized = _normalize_email(email)
+    store = load_schema_store()
+    existing = [item.strip().lower() for item in store.metadata.notification_emails if str(item).strip()]
+    if existing and existing[0] != normalized:
+        raise SchemaStoreValidationError(
+            "Only one notification email is allowed. Edit or delete the existing email first."
+        )
+    store.metadata.notification_emails = [normalized]
+    return save_schema_store(store)
+
+
+def rename_notification_email(current_email: str, new_email: str) -> SchemaStore:
+    current = _normalize_email(current_email)
+    new = _normalize_email(new_email)
+    store = load_schema_store()
+
+    for index, item in enumerate(store.metadata.notification_emails):
+        if item.strip().lower() == current:
+            store.metadata.notification_emails[index] = new
+            return save_schema_store(store)
+
+    raise SchemaStoreNotFoundError(f"Notification email not found: {current}")
+
+
+def delete_notification_email(email: str) -> SchemaStore:
+    normalized = _normalize_email(email)
+    store = load_schema_store()
+
+    for index, item in enumerate(store.metadata.notification_emails):
+        if item.strip().lower() == normalized:
+            del store.metadata.notification_emails[index]
+            return save_schema_store(store)
+
+    raise SchemaStoreNotFoundError(f"Notification email not found: {normalized}")

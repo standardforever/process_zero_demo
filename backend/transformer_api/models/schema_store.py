@@ -39,6 +39,7 @@ class PostTransformationAction(BaseModel):
 
 class SchemaStoreMetadata(BaseModel):
     crm_columns: list[str] = Field(default_factory=list)
+    notification_emails: list[str] = Field(default_factory=list)
     erp_system: str = "Odoo"
     version: str = "1.0.0"
     last_updated: str = Field(default_factory=_utc_now_iso)

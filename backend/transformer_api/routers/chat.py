@@ -9,7 +9,6 @@ from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
 from ..services.chat_service import format_chat_response, process_chat_message
-from ..services.schema_store_service import get_schema_store_status
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -26,18 +25,8 @@ def _chunk_text(text: str, size: int = 24) -> list[str]:
     return [text[i : i + size] for i in range(0, len(text), size)] or [""]
 
 
-def _ensure_chat_access() -> None:
-    status = get_schema_store_status()
-    if not status["can_use_chat"]:
-        raise HTTPException(
-            status_code=403,
-            detail="AI chat is locked. Add at least one ERP column and one CRM column in schema setup first.",
-        )
-
-
 @router.post("/stream")
 async def stream_chat(payload: ChatStreamRequest) -> StreamingResponse:
-    _ensure_chat_access()
     text = payload.message.strip()
     if not text:
         raise HTTPException(status_code=400, detail="Message is required")

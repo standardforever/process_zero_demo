@@ -184,6 +184,7 @@ export type SchemaStore = {
   post_transformation_actions: Record<string, SchemaStoreAction>;
   metadata: {
     crm_columns: string[];
+    notification_emails: string[];
     erp_system: string;
     version: string;
     last_updated: string;
@@ -193,7 +194,9 @@ export type SchemaStore = {
 export type SchemaStoreStatus = {
   erp_columns_count: number;
   crm_columns_count: number;
+  notification_emails_count: number;
   has_erp_columns: boolean;
   has_crm_columns: boolean;
+  has_notification_emails: boolean;
   can_use_chat: boolean;
 };

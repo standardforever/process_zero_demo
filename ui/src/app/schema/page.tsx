@@ -5,10 +5,13 @@ import { useCallback, useEffect, useState } from "react";
 
 import {
   addCRMColumn,
+  addNotificationEmail,
   deleteCRMColumn,
   deleteERPSchemaColumn,
+  deleteNotificationEmail,
   getSchemaStore,
   getSchemaStoreStatus,
+  renameNotificationEmail,
   renameCRMColumn,
   upsertERPSchemaColumn,
 } from "@/lib/api";
@@ -19,6 +22,7 @@ const emptySchemaStore: SchemaStore = {
   post_transformation_actions: {},
   metadata: {
     crm_columns: [],
+    notification_emails: [],
     erp_system: "Odoo",
     version: "1.0.0",
     last_updated: "",
@@ -28,8 +32,10 @@ const emptySchemaStore: SchemaStore = {
 const emptySchemaStatus: SchemaStoreStatus = {
   erp_columns_count: 0,
   crm_columns_count: 0,
+  notification_emails_count: 0,
   has_erp_columns: false,
   has_crm_columns: false,
+  has_notification_emails: false,
   can_use_chat: false,
 };
 
@@ -61,6 +67,9 @@ export default function SchemaPage() {
   const [crmColumnName, setCrmColumnName] = useState("");
   const [crmEditingOriginal, setCrmEditingOriginal] = useState<string | null>(null);
   const [crmEditingValue, setCrmEditingValue] = useState("");
+  const [notificationEmail, setNotificationEmail] = useState("");
+  const [notificationEditingOriginal, setNotificationEditingOriginal] = useState<string | null>(null);
+  const [notificationEditingValue, setNotificationEditingValue] = useState("");
 
   const refreshSchema = useCallback(async () => {
     const [store, statusPayload] = await Promise.all([getSchemaStore(), getSchemaStoreStatus()]);
@@ -236,8 +245,75 @@ export default function SchemaPage() {
     }
   }
 
+  async function handleAddNotificationEmail() {
+    const email = notificationEmail.trim();
+    if (!email) {
+      setError("Notification email is required.");
+      return;
+    }
+
+    setBusy(true);
+    setError(null);
+
+    try {
+      await addNotificationEmail(email);
+      await refreshSchema();
+      setNotificationEmail("");
+      setStatus(`Notification email '${email}' added`);
+    } catch (addError) {
+      setError(addError instanceof Error ? addError.message : "Failed to add notification email");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleRenameNotificationEmail() {
+    if (!notificationEditingOriginal) return;
+
+    const newEmail = notificationEditingValue.trim();
+    if (!newEmail) {
+      setError("Notification email is required.");
+      return;
+    }
+
+    setBusy(true);
+    setError(null);
+
+    try {
+      await renameNotificationEmail(notificationEditingOriginal, newEmail);
+      await refreshSchema();
+      setStatus(`Notification email '${notificationEditingOriginal}' updated`);
+      setNotificationEditingOriginal(null);
+      setNotificationEditingValue("");
+    } catch (renameError) {
+      setError(renameError instanceof Error ? renameError.message : "Failed to update notification email");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function handleDeleteNotificationEmail(email: string) {
+    setBusy(true);
+    setError(null);
+
+    try {
+      await deleteNotificationEmail(email);
+      await refreshSchema();
+      setStatus(`Notification email '${email}' deleted`);
+      if (notificationEditingOriginal === email) {
+        setNotificationEditingOriginal(null);
+        setNotificationEditingValue("");
+      }
+    } catch (deleteError) {
+      setError(deleteError instanceof Error ? deleteError.message : "Failed to delete notification email");
+    } finally {
+      setBusy(false);
+    }
+  }
+
   const erpEntries = Object.entries(schemaStore.erp_schema || {});
   const crmColumns = schemaStore.metadata?.crm_columns || [];
+  const notificationEmails = schemaStore.metadata?.notification_emails || [];
 
   return (
     <div className="min-h-screen bg-slate-50 px-6 py-8">
@@ -245,10 +321,12 @@ export default function SchemaPage() {
         <header className="space-y-2">
           <h1 className="text-2xl font-bold text-slate-900">Schema Setup</h1>
           <p className="text-sm text-slate-600">
-            Configure ERP and CRM columns here. You must add at least one of each before accessing Rules chat.
+            Configure ERP columns, CRM columns, and one notification email. You must add at least one of each before
+            accessing Rules chat.
           </p>
           <p className="text-sm text-slate-700">
-            ERP columns: {schemaStatus.erp_columns_count} | CRM columns: {schemaStatus.crm_columns_count} | Access: {" "}
+            ERP columns: {schemaStatus.erp_columns_count} | CRM columns: {schemaStatus.crm_columns_count} | Notification email:{" "}
+            {schemaStatus.notification_emails_count} | Access:{" "}
             <span className={schemaStatus.can_use_chat ? "font-semibold text-emerald-700" : "font-semibold text-amber-700"}>
               {schemaStatus.can_use_chat ? "Ready" : "Locked"}
             </span>
@@ -437,6 +515,86 @@ export default function SchemaPage() {
                 </div>
               ))}
               {!crmColumns.length && <p className="text-sm text-slate-500">No CRM columns added yet.</p>}
+            </div>
+          </section>
+
+          <section className="space-y-3 rounded-2xl border border-slate-200 bg-white p-5 lg:col-span-2">
+            <h2 className="text-base font-semibold text-slate-900">Notification Email ({notificationEmails.length}/1)</h2>
+
+            <div className="flex gap-2">
+              <input
+                value={notificationEmail}
+                onChange={(event) => setNotificationEmail(event.target.value)}
+                placeholder="Set notification email (e.g. ops@example.com)"
+                className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+              />
+              <button
+                type="button"
+                onClick={() => void handleAddNotificationEmail()}
+                disabled={busy || notificationEmails.length >= 1}
+                className="rounded-md bg-emerald-700 px-3 py-2 text-sm font-medium text-white disabled:opacity-60">
+                Set
+              </button>
+            </div>
+            {notificationEmails.length >= 1 && (
+              <p className="text-xs text-slate-500">
+                Only one notification email is allowed. Edit or delete the current email to change it.
+              </p>
+            )}
+
+            <div className="max-h-[40vh] space-y-2 overflow-auto rounded-lg border border-slate-200 p-3">
+              {notificationEmails.map((email) => (
+                <div key={email} className="rounded-md border border-slate-200 p-2">
+                  {notificationEditingOriginal === email ? (
+                    <div className="flex gap-2">
+                      <input
+                        value={notificationEditingValue}
+                        onChange={(event) => setNotificationEditingValue(event.target.value)}
+                        className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => void handleRenameNotificationEmail()}
+                        disabled={busy}
+                        className="rounded-md bg-cyan-700 px-3 py-2 text-sm font-medium text-white disabled:opacity-60">
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setNotificationEditingOriginal(null);
+                          setNotificationEditingValue("");
+                        }}
+                        className="rounded-md bg-slate-100 px-3 py-2 text-sm font-medium text-slate-700">
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-sm text-slate-900">{email}</p>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setNotificationEditingOriginal(email);
+                            setNotificationEditingValue(email);
+                          }}
+                          className="rounded-md bg-cyan-700 px-2 py-1 text-xs font-medium text-white">
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => void handleDeleteNotificationEmail(email)}
+                          disabled={busy}
+                          className="rounded-md bg-red-700 px-2 py-1 text-xs font-medium text-white disabled:opacity-60">
+                          Delete
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+              {!notificationEmails.length && <p className="text-sm text-slate-500">No notification email added yet.</p>}
             </div>
           </section>
         </div>

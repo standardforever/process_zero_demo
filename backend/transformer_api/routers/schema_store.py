@@ -10,10 +10,13 @@ from ..services.schema_store_service import (
     SchemaStoreNotFoundError,
     SchemaStoreValidationError,
     add_crm_column,
+    add_notification_email,
     delete_crm_column,
     delete_erp_schema_column,
+    delete_notification_email,
     get_schema_store_status,
     load_schema_store,
+    rename_notification_email,
     rename_crm_column,
     save_schema_store,
     upsert_erp_schema_column,
@@ -28,6 +31,14 @@ class CRMColumnRequest(BaseModel):
 
 class CRMColumnRenameRequest(BaseModel):
     new_name: str = Field(min_length=1)
+
+
+class NotificationEmailRequest(BaseModel):
+    email: str = Field(min_length=3)
+
+
+class NotificationEmailRenameRequest(BaseModel):
+    new_email: str = Field(min_length=3)
 
 
 @router.get("")
@@ -91,6 +102,34 @@ def put_crm_column(column_name: str, payload: CRMColumnRenameRequest) -> dict[st
 def remove_crm_column(column_name: str) -> dict[str, Any]:
     try:
         return delete_crm_column(column_name).model_dump()
+    except SchemaStoreNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except SchemaStoreValidationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.post("/notifications/email")
+def create_notification_email(payload: NotificationEmailRequest) -> dict[str, Any]:
+    try:
+        return add_notification_email(payload.email).model_dump()
+    except SchemaStoreValidationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.put("/notifications/email/{email}")
+def put_notification_email(email: str, payload: NotificationEmailRenameRequest) -> dict[str, Any]:
+    try:
+        return rename_notification_email(email, payload.new_email).model_dump()
+    except SchemaStoreNotFoundError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+    except SchemaStoreValidationError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+
+@router.delete("/notifications/email/{email}")
+def remove_notification_email(email: str) -> dict[str, Any]:
+    try:
+        return delete_notification_email(email).model_dump()
     except SchemaStoreNotFoundError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
     except SchemaStoreValidationError as exc:

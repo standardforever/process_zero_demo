@@ -16,7 +16,7 @@ import {
 } from "@/lib/types";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") || "http://localhost:8000/api";
+  process.env.NEXT_PUBLIC_API_BASE_URL?.replace(/\/$/, "") || "/transformer/api";
 
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -190,6 +190,26 @@ export function renameCRMColumn(columnName: string, newName: string): Promise<Sc
 
 export function deleteCRMColumn(columnName: string): Promise<SchemaStore> {
   return request<SchemaStore>(`/schema-store/crm/${encodeURIComponent(columnName)}`, {
+    method: "DELETE",
+  });
+}
+
+export function addNotificationEmail(email: string): Promise<SchemaStore> {
+  return request<SchemaStore>("/schema-store/notifications/email", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  });
+}
+
+export function renameNotificationEmail(email: string, newEmail: string): Promise<SchemaStore> {
+  return request<SchemaStore>(`/schema-store/notifications/email/${encodeURIComponent(email)}`, {
+    method: "PUT",
+    body: JSON.stringify({ new_email: newEmail }),
+  });
+}
+
+export function deleteNotificationEmail(email: string): Promise<SchemaStore> {
+  return request<SchemaStore>(`/schema-store/notifications/email/${encodeURIComponent(email)}`, {
     method: "DELETE",
   });
 }

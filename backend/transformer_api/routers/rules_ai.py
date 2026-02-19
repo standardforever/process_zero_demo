@@ -36,7 +36,10 @@ def _ensure_chat_access() -> None:
     if not status["can_use_chat"]:
         raise HTTPException(
             status_code=403,
-            detail="AI chat is locked. Add at least one ERP column and one CRM column in schema setup first.",
+            detail=(
+                "AI chat is locked. Add at least one ERP column, one CRM column, "
+                "and one notification email in schema setup first."
+            ),
         )
 
 

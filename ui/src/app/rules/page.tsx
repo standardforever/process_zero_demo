@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { streamTransformerChat } from "@/lib/api";
 
@@ -16,13 +16,47 @@ type StreamEvent =
   | { type: "done"; result?: unknown }
   | { type: "error"; error?: string };
 
+const CHAT_STORAGE_KEY = "transformer_rules_chat_history_v1";
+
 export default function RulesPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
   const canSend = useMemo(() => !busy && input.trim().length > 0, [busy, input]);
+
+  useEffect(() => {
+    try {
+      const raw = window.localStorage.getItem(CHAT_STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as ChatMessage[];
+      if (!Array.isArray(parsed)) return;
+      const valid = parsed.filter(
+        (item) =>
+          item &&
+          (item.role === "user" || item.role === "assistant") &&
+          typeof item.content === "string",
+      );
+      setMessages(valid.slice(-200));
+    } catch {
+      // ignore broken local storage payloads
+    }
+  }, []);
+
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages.slice(-200)));
+    } catch {
+      // ignore storage failures
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    if (!scrollRef.current) return;
+    scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+  }, [messages, busy]);
 
   async function handleSend() {
     const prompt = input.trim();
@@ -31,12 +65,11 @@ export default function RulesPage() {
     setBusy(true);
     setError(null);
 
-    const assistantIndex = messages.length + 1;
-    setMessages((current) => [
-      ...current,
-      { role: "user", content: prompt },
-      { role: "assistant", content: "" },
-    ]);
+    let assistantIndex = -1;
+    setMessages((current) => {
+      assistantIndex = current.length + 1;
+      return [...current, { role: "user", content: prompt }, { role: "assistant", content: "" }];
+    });
     setInput("");
 
     try {
@@ -62,7 +95,6 @@ export default function RulesPage() {
             .split("\n")
             .map((line) => line.trim())
             .find((line) => line.startsWith("data:"));
-
           if (!dataLine) continue;
 
           const payloadText = dataLine.slice(5).trim();
@@ -79,7 +111,7 @@ export default function RulesPage() {
             const chunk = event.content || "";
             setMessages((current) => {
               const next = [...current];
-              if (!next[assistantIndex]) return current;
+              if (assistantIndex < 0 || !next[assistantIndex]) return current;
               next[assistantIndex] = {
                 ...next[assistantIndex],
                 content: next[assistantIndex].content + chunk,
@@ -96,11 +128,8 @@ export default function RulesPage() {
       setError(message);
       setMessages((current) => {
         const next = [...current];
-        if (next[assistantIndex] && !next[assistantIndex].content) {
-          next[assistantIndex] = {
-            ...next[assistantIndex],
-            content: `Error: ${message}`,
-          };
+        if (assistantIndex >= 0 && next[assistantIndex] && !next[assistantIndex].content) {
+          next[assistantIndex] = { ...next[assistantIndex], content: `Error: ${message}` };
         }
         return next;
       });
@@ -109,41 +138,78 @@ export default function RulesPage() {
     }
   }
 
+  function handleClearHistory() {
+    setMessages([]);
+    setError(null);
+    try {
+      window.localStorage.removeItem(CHAT_STORAGE_KEY);
+    } catch {
+      // ignore storage failures
+    }
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 px-6 py-8">
-      <div className="mx-auto max-w-4xl space-y-4">
+      <div className="mx-auto max-w-5xl space-y-4">
         <header className="space-y-2">
           <h1 className="text-2xl font-bold text-slate-900">Rules Chat</h1>
           <p className="text-sm text-slate-600">
             Chat with AI to create, update, search, and manage transformation rules.
           </p>
-          <Link href="/schema" className="inline-block text-sm font-medium text-cyan-700 hover:text-cyan-800">
-            Open Schema Setup
-          </Link>
+          <div className="flex items-center gap-4">
+            <Link href="/schema" className="text-sm font-medium text-cyan-700 hover:text-cyan-800">
+              Open Schema Setup
+            </Link>
+            <button
+              type="button"
+              onClick={handleClearHistory}
+              className="rounded-md bg-slate-200 px-3 py-1.5 text-xs font-medium text-slate-700 hover:bg-slate-300">
+              Clear Chat History
+            </button>
+          </div>
         </header>
 
         <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div className="mb-4 max-h-[55vh] space-y-3 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-3">
+          <div
+            ref={scrollRef}
+            className="mb-4 flex max-h-[58vh] flex-col gap-3 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-3">
             {messages.length === 0 && (
-              <p className="text-sm text-slate-500">
-                Start by describing a rule change. Example: Add a sales_tax_rate rule for customer &quot;ACME&quot; set to 10%.
-              </p>
-            )}
-            {messages.map((message, index) => (
-              <div
-                key={`${message.role}-${index}`}
-                className={message.role === "user" ? "text-slate-900" : "text-cyan-900"}>
-                <span className="font-semibold">{message.role === "user" ? "You" : "Assistant"}:</span>{" "}
-                <span className="whitespace-pre-wrap">{message.content || (busy && message.role === "assistant" ? "..." : "")}</span>
+              <div className="rounded-lg border border-dashed border-slate-300 bg-white p-3 text-sm text-slate-500">
+                Say hello, ask for help, or start with:
+                <br />
+                <span className="font-medium">
+                  Add a rule in sales_tax_rate: if customer_name equals &quot;ACME&quot;, set value to &quot;10%&quot;
+                </span>
               </div>
-            ))}
+            )}
+
+            {messages.map((message, index) => {
+              const isUser = message.role === "user";
+              return (
+                <div key={`${message.role}-${index}`} className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
+                  <div
+                    className={`max-w-[78%] rounded-2xl px-4 py-2 text-sm shadow-sm ${
+                      isUser
+                        ? "rounded-br-md bg-cyan-700 text-white"
+                        : "rounded-bl-md border border-slate-200 bg-white text-slate-900"
+                    }`}>
+                    <p className={`mb-1 text-[11px] font-semibold ${isUser ? "text-cyan-100" : "text-slate-500"}`}>
+                      {isUser ? "You" : "Assistant"}
+                    </p>
+                    <p className="whitespace-pre-wrap">
+                      {message.content || (!isUser && busy ? "..." : "")}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           <div className="space-y-2">
             <textarea
               value={input}
               onChange={(event) => setInput(event.target.value)}
-              placeholder="Describe the rule operation you want..."
+              placeholder="Type your message..."
               className="min-h-[110px] w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 outline-none ring-cyan-600 focus:ring"
               disabled={busy}
             />
