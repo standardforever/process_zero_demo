@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from "react";
 
 import { streamTransformerChat } from "@/lib/api";
 
@@ -17,6 +17,47 @@ type StreamEvent =
   | { type: "error"; error?: string };
 
 const CHAT_STORAGE_KEY = "transformer_rules_chat_history_v1";
+const LINK_PATTERN = /(https?:\/\/[^\s]+|\/transformer\/schema)/g;
+
+function renderMessageWithLinks(content: string): ReactNode {
+  const lines = content.split("\n");
+  return lines.map((line, lineIndex) => {
+    const parts = line.split(LINK_PATTERN);
+    return (
+      <span key={`line-${lineIndex}`}>
+        {parts.map((part, partIndex) => {
+          const value = part.trim();
+          if (value === "/transformer/schema") {
+            return (
+              <Link
+                key={`part-${lineIndex}-${partIndex}`}
+                href="/schema"
+                className="font-medium text-cyan-300 underline hover:text-cyan-200">
+                Open Schema Setup
+              </Link>
+            );
+          }
+
+          if (value.startsWith("http://") || value.startsWith("https://")) {
+            return (
+              <a
+                key={`part-${lineIndex}-${partIndex}`}
+                href={value}
+                target="_blank"
+                rel="noreferrer"
+                className="font-medium text-cyan-300 underline hover:text-cyan-200">
+                {value}
+              </a>
+            );
+          }
+
+          return <span key={`part-${lineIndex}-${partIndex}`}>{part}</span>;
+        })}
+        {lineIndex < lines.length - 1 ? <br /> : null}
+      </span>
+    );
+  });
+}
 
 export default function RulesPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -148,6 +189,13 @@ export default function RulesPage() {
     }
   }
 
+  function handleInputKeyDown(event: KeyboardEvent<HTMLInputElement>) {
+    if (event.key !== "Enter") return;
+    event.preventDefault();
+    if (!canSend) return;
+    void handleSend();
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 px-6 py-8">
       <div className="mx-auto max-w-5xl space-y-4">
@@ -196,9 +244,13 @@ export default function RulesPage() {
                     <p className={`mb-1 text-[11px] font-semibold ${isUser ? "text-cyan-100" : "text-slate-500"}`}>
                       {isUser ? "You" : "Assistant"}
                     </p>
-                    <p className="whitespace-pre-wrap">
-                      {message.content || (!isUser && busy ? "..." : "")}
-                    </p>
+                    <div className="whitespace-pre-wrap break-words">
+                      {message.content
+                        ? renderMessageWithLinks(message.content)
+                        : !isUser && busy
+                          ? "..."
+                          : ""}
+                    </div>
                   </div>
                 </div>
               );
@@ -206,21 +258,28 @@ export default function RulesPage() {
           </div>
 
           <div className="space-y-2">
-            <textarea
-              value={input}
-              onChange={(event) => setInput(event.target.value)}
-              placeholder="Type your message..."
-              className="min-h-[110px] w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-800 outline-none ring-cyan-600 focus:ring"
-              disabled={busy}
-            />
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 rounded-full border border-slate-300 bg-white px-2 py-2 shadow-sm">
+              <input
+                value={input}
+                onChange={(event) => setInput(event.target.value)}
+                onKeyDown={handleInputKeyDown}
+                placeholder="Type your message..."
+                className="h-10 w-full rounded-full border-0 bg-transparent px-3 text-sm text-slate-800 outline-none focus:ring-0"
+                disabled={busy}
+              />
               <button
                 type="button"
                 onClick={() => void handleSend()}
                 disabled={!canSend}
-                className="rounded-md bg-cyan-800 px-4 py-2 text-sm font-medium text-white disabled:opacity-60">
-                {busy ? "Streaming..." : "Send"}
+                aria-label={busy ? "Streaming response" : "Send message"}
+                className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-cyan-800 text-white disabled:opacity-60">
+                <svg viewBox="0 0 24 24" className="h-5 w-5 fill-current" aria-hidden="true">
+                  <path d="M3.4 20.4L21 12 3.4 3.6 3.3 10l12.6 2-12.6 2z" />
+                </svg>
               </button>
+            </div>
+            <div className="flex items-center gap-3">
+              {busy && <p className="text-xs font-medium text-slate-500">Streaming...</p>}
               {error && <p className="text-sm font-medium text-red-700">{error}</p>}
             </div>
           </div>
