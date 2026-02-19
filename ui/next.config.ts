@@ -7,13 +7,13 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/",
-        destination: "/transformer/rules",
+        destination: "/transformer/schema",
         permanent: false,
         basePath: false,
       },
       {
         source: "/",
-        destination: "/rules",
+        destination: "/schema",
         permanent: false,
       },
     ];
