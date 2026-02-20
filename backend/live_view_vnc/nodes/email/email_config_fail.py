@@ -17,10 +17,10 @@ DEFAULT_TIMEOUT_SECONDS = 20
 
 def _load_schema_notification_email() -> str:
     """
-    Read the single notification email from transformer schema store.
+    Read the single notification email from transformation rules store.
     Returns empty string when unavailable.
     """
-    schema_store_path = Path(__file__).resolve().parents[3] / "transformer_api" / "data" / "schema_store.json"
+    schema_store_path = Path(__file__).resolve().parents[2] / "transformation_rules.json"
     if not schema_store_path.exists():
         return ""
 

@@ -8,7 +8,7 @@ from typing import Any
 
 from ..models.schema_store import ERPSchemaColumn, PostTransformationAction, SchemaStore, SchemaStoreMetadata
 
-SCHEMA_STORE_FILE = Path(__file__).resolve().parents[1] / "data" / "schema_store.json"
+SCHEMA_STORE_FILE = Path(__file__).resolve().parents[2] / "live_view_vnc" / "transformation_rules.json"
 
 
 class SchemaStoreValidationError(ValueError):
@@ -123,16 +123,16 @@ def load_schema_store() -> SchemaStore:
         payload = json.load(file)
 
     store = SchemaStore(**payload)
-    store_dump_before = store.model_dump()
-
     normalized = _normalize_store_for_save(store.model_copy(deep=True))
-    store_dump_after = normalized.model_dump()
+    normalized_dump = normalized.model_dump()
 
-    # One-time migration path: if legacy payload has non-snake-case keys, rewrite on load.
-    if store_dump_after != store_dump_before:
+    # One-time migration path: if payload shape differs from normalized model dump,
+    # rewrite the source file so required keys (e.g. metadata.notification_emails)
+    # are physically present.
+    if normalized_dump != payload:
         normalized.metadata.last_updated = _utc_now_iso()
         with SCHEMA_STORE_FILE.open("w", encoding="utf-8") as file:
-            json.dump(normalized.model_dump(), file, indent=2)
+            json.dump(normalized_dump, file, indent=2)
             file.write("\n")
         return normalized
 

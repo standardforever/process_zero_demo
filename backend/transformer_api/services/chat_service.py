@@ -8,7 +8,7 @@ from typing import Any
 from .schema_store_service import get_schema_store_status
 from ..transformer import create_llm_manager
 
-RULES_FILE = Path(__file__).resolve().parents[1] / "data" / "schema_store.json"
+RULES_FILE = Path(__file__).resolve().parents[2] / "live_view_vnc" / "transformation_rules.json"
 SCHEMA_SETUP_PATH = "/transformer/schema"
 
 _manager = None
