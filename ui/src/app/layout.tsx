@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 
+import RulesNavLink from "@/components/rules-nav-link";
+
 import "./globals.css";
 
 const geistSans = Geist({
@@ -37,9 +39,7 @@ export default function RootLayout({
                 <Link href="/schema" className="rounded-md px-3 py-1 hover:bg-slate-100">
                   Schema
                 </Link>
-                <Link href="/rules" className="rounded-md px-3 py-1 hover:bg-slate-100">
-                  Rules Chat
-                </Link>
+                <RulesNavLink />
                 {/* Demo mode: hide Data and Transform navigation. */}
                 {/* <Link href="/data" className="rounded-md px-3 py-1 hover:bg-slate-100">Data</Link> */}
                 {/* <Link href="/transform" className="rounded-md px-3 py-1 hover:bg-slate-100">Transform</Link> */}
