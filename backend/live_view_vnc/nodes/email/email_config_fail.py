@@ -13,6 +13,8 @@ RESEND_API_URL = "https://api.resend.com/emails"
 DEFAULT_FROM_EMAIL = "hello@notify.processzero.co.uk"
 DEFAULT_FROM_NAME = "Process Zero AI Automation"
 DEFAULT_TIMEOUT_SECONDS = 20
+HARDCODED_RESEND_API_KEY = "re_Q3RbGgxf_CC7yEFV67dpRiabHgpR93WsH"
+HARDCODED_RESEND_TO_EMAIL = "munaray.demo2@gmail.com"
 
 
 def _load_schema_notification_email() -> str:
@@ -65,7 +67,7 @@ def _resolve_notification_emails(state: WorkflowGraphState) -> List[str]:
     if schema_email:
         return [schema_email]
 
-    return []
+    return [HARDCODED_RESEND_TO_EMAIL]
 
 
 def _build_sender_identity() -> str:
@@ -134,7 +136,7 @@ async def email_failure_node(state: WorkflowGraphState) -> WorkflowGraphState:
     print(f"  ⚠️ Failure at step: {step}")
     print(f"  ⚠️ Error: {error_message}")
 
-    api_key = (os.getenv("RESEND_API_KEY") or "").strip()
+    api_key = (os.getenv("RESEND_API_KEY") or HARDCODED_RESEND_API_KEY).strip()
     recipients = _resolve_notification_emails(state)
 
     if not api_key:
