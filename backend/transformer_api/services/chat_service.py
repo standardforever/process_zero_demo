@@ -139,32 +139,9 @@ def format_chat_response(result: dict[str, Any]) -> str:
 
     if status == "success":
         if "rules_by_column" in result:
-            created_rule_prompts = result.get("created_rule_prompts") or []
-            if isinstance(created_rule_prompts, list) and created_rule_prompts:
-                lines: list[str] = []
-                for index, item in enumerate(created_rule_prompts, start=1):
-                    erp_column = str(item.get("erp_column", "")).strip()
-                    rule_name = str(item.get("rule_name", "")).strip()
-                    prompt = str(item.get("prompt", "")).strip()
-                    label = (
-                        f"{erp_column}.{rule_name}"
-                        if erp_column and rule_name
-                        else rule_name or erp_column or "rule"
-                    )
-                    lines.append(f"{index}. {label} - {prompt}")
-                return "Created rules:\n" + "\n".join(lines)
             return _format_rules_by_column(result)
 
         if "rules" in result and "erp_column" in result:
-            created_rule_prompts = result.get("created_rule_prompts") or []
-            if isinstance(created_rule_prompts, list) and created_rule_prompts:
-                lines = []
-                for index, item in enumerate(created_rule_prompts, start=1):
-                    rule_name = str(item.get("rule_name", "")).strip() or "rule"
-                    prompt = str(item.get("prompt", "")).strip()
-                    lines.append(f"{index}. {rule_name} - {prompt}")
-                erp_column = str(result.get("erp_column", "")).strip()
-                return f"Created rules for '{erp_column}':\n" + "\n".join(lines)
             return _format_rules_for_column(result)
 
         if "summary" in result and isinstance(result.get("summary"), dict):
