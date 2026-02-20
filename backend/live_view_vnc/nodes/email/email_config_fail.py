@@ -13,6 +13,7 @@ RESEND_API_URL = "https://api.resend.com/emails"
 DEFAULT_FROM_EMAIL = "hello@notify.processzero.co.uk"
 DEFAULT_FROM_NAME = "Process Zero AI Automation"
 DEFAULT_TIMEOUT_SECONDS = 20
+DEFAULT_USER_AGENT = "process-zero-live-view/1.0"
 HARDCODED_RESEND_API_KEY = "re_Q3RbGgxf_CC7yEFV67dpRiabHgpR93WsH"
 
 
@@ -54,6 +55,7 @@ def _resolve_notification_emails(state: WorkflowGraphState) -> List[str]:
     global_settings = state.get("global_settings") or {}
     configured_from_state = (
         global_settings.get("failure_notification_emails")
+        or global_settings.get("notification_email")
         or global_settings.get("notification_emails")
         or []
     )
@@ -99,6 +101,7 @@ def _send_failure_email(
         headers={
             "Authorization": f"Bearer {api_key}",
             "Content-Type": "application/json",
+            "User-Agent": DEFAULT_USER_AGENT,
         },
     )
     try:
@@ -153,7 +156,7 @@ async def email_failure_node(state: WorkflowGraphState) -> WorkflowGraphState:
     if not recipients:
         print(
             "  ⚠️ No recipient emails configured. Set RESEND_TO_EMAILS or "
-            "global_settings.notification_emails."
+            "global_settings.notification_email or metadata.notification_email."
         )
         return {
             **state,

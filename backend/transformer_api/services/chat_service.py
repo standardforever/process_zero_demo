@@ -58,7 +58,7 @@ def _schema_required_response() -> dict[str, Any]:
         missing.append("at least one ERP column")
     if not status.get("has_crm_columns"):
         missing.append("at least one CRM column")
-    if not status.get("has_notification_emails"):
+    if not (status.get("has_notification_email") or status.get("has_notification_emails")):
         missing.append("one notification email")
 
     missing_text = ", ".join(missing) if missing else "required schema setup items"

@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 def _utc_now_iso() -> str:
@@ -39,10 +39,33 @@ class PostTransformationAction(BaseModel):
 
 class SchemaStoreMetadata(BaseModel):
     crm_columns: list[str] = Field(default_factory=list)
-    notification_emails: list[str] = Field(default_factory=list)
+    notification_email: str = ""
     erp_system: str = "Odoo"
     version: str = "1.0.0"
     last_updated: str = Field(default_factory=_utc_now_iso)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _migrate_legacy_notification_emails(cls, data: Any) -> Any:
+        if not isinstance(data, dict):
+            return data
+
+        canonical = str(data.get("notification_email", "")).strip()
+        if not canonical:
+            legacy = data.get("notification_emails")
+            if isinstance(legacy, list):
+                for item in legacy:
+                    candidate = str(item).strip()
+                    if candidate:
+                        canonical = candidate
+                        break
+            elif isinstance(legacy, str):
+                canonical = legacy.strip()
+            if canonical:
+                data["notification_email"] = canonical
+
+        data.pop("notification_emails", None)
+        return data
 
     model_config = {
         "extra": "allow",

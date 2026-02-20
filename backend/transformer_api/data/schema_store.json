@@ -39,7 +39,7 @@
     "crm_columns": [
       "sales_tax_rate"
     ],
-    "notification_emails": [],
+    "notification_email": "",
     "erp_system": "Odoo",
     "version": "1.0.0",
     "last_updated": "2026-02-18T12:11:10Z",

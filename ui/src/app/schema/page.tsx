@@ -22,7 +22,7 @@ const emptySchemaStore: SchemaStore = {
   post_transformation_actions: {},
   metadata: {
     crm_columns: [],
-    notification_emails: [],
+    notification_email: "",
     erp_system: "Odoo",
     version: "1.0.0",
     last_updated: "",
@@ -32,9 +32,11 @@ const emptySchemaStore: SchemaStore = {
 const emptySchemaStatus: SchemaStoreStatus = {
   erp_columns_count: 0,
   crm_columns_count: 0,
+  notification_email_count: 0,
   notification_emails_count: 0,
   has_erp_columns: false,
   has_crm_columns: false,
+  has_notification_email: false,
   has_notification_emails: false,
   can_use_chat: false,
 };
@@ -313,7 +315,13 @@ export default function SchemaPage() {
 
   const erpEntries = Object.entries(schemaStore.erp_schema || {});
   const crmColumns = schemaStore.metadata?.crm_columns || [];
-  const notificationEmails = schemaStore.metadata?.notification_emails || [];
+  const notificationEmailValue =
+    schemaStore.metadata?.notification_email?.trim() || schemaStore.metadata?.notification_emails?.[0]?.trim() || "";
+  const notificationEmails = notificationEmailValue ? [notificationEmailValue] : [];
+  const notificationEmailCount =
+    schemaStatus.notification_email_count ?? schemaStatus.notification_emails_count ?? notificationEmails.length;
+  const hasNotificationEmail =
+    schemaStatus.has_notification_email ?? schemaStatus.has_notification_emails ?? notificationEmails.length > 0;
 
   return (
     <div className="min-h-screen bg-slate-50 px-6 py-8">
@@ -326,7 +334,7 @@ export default function SchemaPage() {
           </p>
           <p className="text-sm text-slate-700">
             ERP columns: {schemaStatus.erp_columns_count} | CRM columns: {schemaStatus.crm_columns_count} | Notification email:{" "}
-            {schemaStatus.notification_emails_count} | Access:{" "}
+            {notificationEmailCount} | Access:{" "}
             <span className={schemaStatus.can_use_chat ? "font-semibold text-emerald-700" : "font-semibold text-amber-700"}>
               {schemaStatus.can_use_chat ? "Ready" : "Locked"}
             </span>
@@ -531,12 +539,12 @@ export default function SchemaPage() {
               <button
                 type="button"
                 onClick={() => void handleAddNotificationEmail()}
-                disabled={busy || notificationEmails.length >= 1}
+                disabled={busy || hasNotificationEmail}
                 className="rounded-md bg-emerald-700 px-3 py-2 text-sm font-medium text-white disabled:opacity-60">
                 Set
               </button>
             </div>
-            {notificationEmails.length >= 1 && (
+            {hasNotificationEmail && (
               <p className="text-xs text-slate-500">
                 Only one notification email is allowed. Edit or delete the current email to change it.
               </p>
