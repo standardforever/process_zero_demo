@@ -11,26 +11,47 @@
       "data_type": "string",
       "description": "ERP customer name mapped from CRM",
       "rules": {
-        "acme_trading_corporation_ltd": {
+        "universal_supplies": {
           "priority": 1,
           "enabled": true,
           "conditions": [
             {
               "crm_column": "customer_name",
               "operator": "equals",
-              "value": "ACME Trading Corporation Limited",
+              "value": "Universal Supplies",
               "logical_operator": "",
               "transformation": {
                 "action": "set_value",
-                "value": "ACME Trading Corporation LTD",
+                "value": "Universal Supplies Limited",
                 "source_crm_column": "",
                 "formula": ""
               }
             }
           ],
-          "created_at": "2026-02-17T15:22:08.477213",
-          "updated_at": "2026-02-17T15:41:00.145408",
-          "notes": "Set customer to 'ACME Trading Corporation LTD' for specific customer name."
+          "created_at": "2026-02-20T00:00:00.000000",
+          "updated_at": "2026-02-20T00:00:00.000000",
+          "notes": "Set customer to 'Universal Supplies Limited' for 'Universal Supplies'."
+        },
+        "wrath_trading": {
+          "priority": 1,
+          "enabled": true,
+          "conditions": [
+            {
+              "crm_column": "customer_name",
+              "operator": "equals",
+              "value": "Wrath Trading",
+              "logical_operator": "",
+              "transformation": {
+                "action": "set_value",
+                "value": "Wrath Trading Limited",
+                "source_crm_column": "",
+                "formula": ""
+              }
+            }
+          ],
+          "created_at": "2026-02-20T00:00:00.000000",
+          "updated_at": "2026-02-20T00:00:00.000000",
+          "notes": "Set customer to 'Wrath Trading Limited' for 'Wrath Trading'."
         },
         "abc_trading": {
           "priority": 1,
@@ -49,9 +70,30 @@
               }
             }
           ],
-          "created_at": "2026-02-17T15:41:04.875831",
-          "updated_at": "2026-02-17T15:41:04.875842",
-          "notes": "Set customer to 'ABC Trading Limited' for 'ABC Trading' customer_name"
+          "created_at": "2026-02-20T00:00:00.000000",
+          "updated_at": "2026-02-20T00:00:00.000000",
+          "notes": "Set customer to 'ABC Trading Limited' for 'ABC Trading'."
+        },
+        "trade_direct": {
+          "priority": 1,
+          "enabled": true,
+          "conditions": [
+            {
+              "crm_column": "customer_name",
+              "operator": "equals",
+              "value": "Trade Direct",
+              "logical_operator": "",
+              "transformation": {
+                "action": "set_value",
+                "value": "Trade Direct Limited",
+                "source_crm_column": "",
+                "formula": ""
+              }
+            }
+          ],
+          "created_at": "2026-02-20T00:00:00.000000",
+          "updated_at": "2026-02-20T00:00:00.000000",
+          "notes": "Set customer to 'Trade Direct Limited' for 'Trade Direct'."
         },
         "sony_entertainment": {
           "priority": 1,
@@ -94,153 +136,6 @@
           "created_at": "2026-02-17T15:41:14.452069",
           "updated_at": "2026-02-17T15:41:14.452076",
           "notes": "Set customer to 'EKHO IT Services' for 'Echo IT Services'."
-        },
-        "inner_mongolia": {
-          "priority": 1,
-          "enabled": true,
-          "conditions": [
-            {
-              "crm_column": "customer_name",
-              "operator": "equals",
-              "value": "Inner Mongolia",
-              "logical_operator": "",
-              "transformation": {
-                "action": "set_value",
-                "value": "Inner Mongolia Autonomous Region Test",
-                "source_crm_column": "",
-                "formula": ""
-              }
-            }
-          ],
-          "created_at": "2026-02-17T15:41:20.784490",
-          "updated_at": "2026-02-17T15:41:20.784535",
-          "notes": "Set customer to a specific value when customer_name is 'Inner Mongolia'."
-        },
-        "munaray": {
-          "priority": 1,
-          "enabled": true,
-          "conditions": [
-            {
-              "crm_column": "customer_name",
-              "operator": "equals",
-              "value": "Munaray",
-              "logical_operator": "",
-              "transformation": {
-                "action": "set_value",
-                "value": "MUNARAY",
-                "source_crm_column": "",
-                "formula": ""
-              }
-            }
-          ],
-          "created_at": "2026-02-17T15:41:27.891538",
-          "updated_at": "2026-02-17T15:41:27.891554",
-          "notes": "Set customer to 'MUNARAY' for customer_name 'Munaray'."
-        },
-        "red_internet": {
-          "priority": 1,
-          "enabled": true,
-          "conditions": [
-            {
-              "crm_column": "customer_name",
-              "operator": "equals",
-              "value": "Red Internet",
-              "logical_operator": "",
-              "transformation": {
-                "action": "set_value",
-                "value": "Red Internet Co. Limited",
-                "source_crm_column": "",
-                "formula": ""
-              }
-            }
-          ],
-          "created_at": "2026-02-17T15:41:32.545202",
-          "updated_at": "2026-02-17T15:41:32.545250",
-          "notes": "Set customer to 'Red Internet Co. Limited' for 'Red Internet'"
-        },
-        "trade_direct": {
-          "priority": 1,
-          "enabled": true,
-          "conditions": [
-            {
-              "crm_column": "customer_name",
-              "operator": "equals",
-              "value": "Trade Direct",
-              "logical_operator": "",
-              "transformation": {
-                "action": "set_value",
-                "value": "Trading Direct Limited",
-                "source_crm_column": "",
-                "formula": ""
-              }
-            }
-          ],
-          "created_at": "2026-02-17T15:41:37.520968",
-          "updated_at": "2026-02-17T15:41:37.520989",
-          "notes": "Set customer to 'Trading Direct Limited' for 'Trade Direct' customer_name"
-        },
-        "universal_studios": {
-          "priority": 1,
-          "enabled": true,
-          "conditions": [
-            {
-              "crm_column": "customer_name",
-              "operator": "equals",
-              "value": "Universal Studios",
-              "logical_operator": "",
-              "transformation": {
-                "action": "set_value",
-                "value": "Universal Supplies Limited",
-                "source_crm_column": "",
-                "formula": ""
-              }
-            }
-          ],
-          "created_at": "2026-02-17T15:41:41.004435",
-          "updated_at": "2026-02-17T15:41:41.004479",
-          "notes": "Set customer to Universal Supplies Limited for Universal Studios"
-        },
-        "wraith_trading": {
-          "priority": 1,
-          "enabled": true,
-          "conditions": [
-            {
-              "crm_column": "customer_name",
-              "operator": "equals",
-              "value": "Wraith Trading",
-              "logical_operator": "",
-              "transformation": {
-                "action": "set_value",
-                "value": "Wraith Trading Limited",
-                "source_crm_column": "",
-                "formula": ""
-              }
-            }
-          ],
-          "created_at": "2026-02-17T15:41:45.742510",
-          "updated_at": "2026-02-17T15:41:45.742515",
-          "notes": "Set customer to 'Wraith Trading Limited' for 'Wraith Trading'"
-        },
-        "veterinary_solutions": {
-          "priority": 1,
-          "enabled": true,
-          "conditions": [
-            {
-              "crm_column": "customer_name",
-              "operator": "equals",
-              "value": "Veterinary Solutions",
-              "logical_operator": "",
-              "transformation": {
-                "action": "set_value",
-                "value": "Veterinary Solutions Limited",
-                "source_crm_column": "",
-                "formula": ""
-              }
-            }
-          ],
-          "created_at": "2026-02-17T15:41:51.545239",
-          "updated_at": "2026-02-17T15:41:51.545245",
-          "notes": "Set customer to 'Veterinary Solutions Limited' for 'Veterinary Solutions'"
         }
       }
     },
@@ -255,6 +150,90 @@
       "data_type": "string",
       "description": "Payment terms applied to the invoice",
       "rules": {
+        "universal_supplies": {
+          "priority": 1,
+          "enabled": true,
+          "conditions": [
+            {
+              "crm_column": "customer_name",
+              "operator": "equals",
+              "value": "Universal Supplies",
+              "logical_operator": "",
+              "transformation": {
+                "action": "set_value",
+                "value": "15 Days",
+                "source_crm_column": "",
+                "formula": ""
+              }
+            }
+          ],
+          "created_at": "2026-02-20T00:00:00.000000",
+          "updated_at": "2026-02-20T00:00:00.000000",
+          "notes": "Set payment terms for Universal Supplies to 15 Days"
+        },
+        "wrath_trading": {
+          "priority": 1,
+          "enabled": true,
+          "conditions": [
+            {
+              "crm_column": "customer_name",
+              "operator": "equals",
+              "value": "Wrath Trading",
+              "logical_operator": "",
+              "transformation": {
+                "action": "set_value",
+                "value": "30 Days",
+                "source_crm_column": "",
+                "formula": ""
+              }
+            }
+          ],
+          "created_at": "2026-02-20T00:00:00.000000",
+          "updated_at": "2026-02-20T00:00:00.000000",
+          "notes": "Set payment terms for Wrath Trading to 30 Days"
+        },
+        "abc_trading": {
+          "priority": 1,
+          "enabled": true,
+          "conditions": [
+            {
+              "crm_column": "customer_name",
+              "operator": "equals",
+              "value": "ABC Trading",
+              "logical_operator": "",
+              "transformation": {
+                "action": "set_value",
+                "value": "21 Days",
+                "source_crm_column": "",
+                "formula": ""
+              }
+            }
+          ],
+          "created_at": "2026-02-20T00:00:00.000000",
+          "updated_at": "2026-02-20T00:00:00.000000",
+          "notes": "Set payment terms for ABC Trading to 21 Days"
+        },
+        "trade_direct": {
+          "priority": 1,
+          "enabled": true,
+          "conditions": [
+            {
+              "crm_column": "customer_name",
+              "operator": "equals",
+              "value": "Trade Direct",
+              "logical_operator": "",
+              "transformation": {
+                "action": "set_value",
+                "value": "45 Days",
+                "source_crm_column": "",
+                "formula": ""
+              }
+            }
+          ],
+          "created_at": "2026-02-20T00:00:00.000000",
+          "updated_at": "2026-02-20T00:00:00.000000",
+          "notes": "Set payment terms for Trade Direct to 45 Days"
+        },
         "sony_entertainment": {
           "priority": 1,
           "enabled": true,
@@ -275,112 +254,8 @@
           "created_at": "2026-02-17T15:34:33.680297",
           "updated_at": "2026-02-17T15:45:23.512187",
           "notes": "Set payment terms for Sony Entertainment to 15 Days"
-        },
-        "inner_mongolia": {
-          "priority": 1,
-          "enabled": true,
-          "conditions": [
-            {
-              "crm_column": "customer_name",
-              "operator": "equals",
-              "value": "Inner Mongolia",
-              "logical_operator": "",
-              "transformation": {
-                "action": "set_value",
-                "value": "45 Days",
-                "source_crm_column": "",
-                "formula": ""
-              }
-            }
-          ],
-          "created_at": "2026-02-17T15:45:13.274681",
-          "updated_at": "2026-02-17T15:45:13.274689",
-          "notes": "Set payment terms to 45 days for Inner Mongolia customers"
-        },
-        "munaray": {
-          "priority": 1,
-          "enabled": true,
-          "conditions": [
-            {
-              "crm_column": "customer_name",
-              "operator": "equals",
-              "value": "Munaray",
-              "logical_operator": "",
-              "transformation": {
-                "action": "set_value",
-                "value": "45 Days",
-                "source_crm_column": "",
-                "formula": ""
-              }
-            }
-          ],
-          "created_at": "2026-02-17T15:45:17.632424",
-          "updated_at": "2026-02-17T15:45:17.632436",
-          "notes": "Set payment terms for Munaray customers"
-        },
-        "universal_studios": {
-          "priority": 1,
-          "enabled": true,
-          "conditions": [
-            {
-              "crm_column": "customer_name",
-              "operator": "equals",
-              "value": "Universal Studios",
-              "logical_operator": "",
-              "transformation": {
-                "action": "set_value",
-                "value": "15 Days",
-                "source_crm_column": "",
-                "formula": ""
-              }
-            }
-          ],
-          "created_at": "2026-02-17T15:45:27.767834",
-          "updated_at": "2026-02-17T15:45:27.767867",
-          "notes": "Set payment terms for Universal Studios"
-        },
-        "trade_direct": {
-          "priority": 1,
-          "enabled": true,
-          "conditions": [
-            {
-              "crm_column": "customer_name",
-              "operator": "equals",
-              "value": "Trade Direct",
-              "logical_operator": "",
-              "transformation": {
-                "action": "set_value",
-                "value": "21 Days",
-                "source_crm_column": "",
-                "formula": ""
-              }
-            }
-          ],
-          "created_at": "2026-02-17T15:45:31.650797",
-          "updated_at": "2026-02-17T15:45:31.650813",
-          "notes": "Set payment terms for Trade Direct customers"
-        },
-        "veterinary_solutions": {
-          "priority": 1,
-          "enabled": true,
-          "conditions": [
-            {
-              "crm_column": "customer_name",
-              "operator": "equals",
-              "value": "Veterinary Solutions",
-              "logical_operator": "",
-              "transformation": {
-                "action": "set_value",
-                "value": "21 Days",
-                "source_crm_column": "",
-                "formula": ""
-              }
-            }
-          ],
-          "created_at": "2026-02-17T15:45:36.923065",
-          "updated_at": "2026-02-17T15:45:36.923090",
-          "notes": "Set payment terms to 21 Days for Veterinary Solutions"
         }
+
       }
     },
     "taxes": {
@@ -576,48 +451,6 @@
       "data_type": "string",
       "description": "Payment method applied to the invoice",
       "rules": {
-        "inner_mongolia": {
-          "priority": 1,
-          "enabled": true,
-          "conditions": [
-            {
-              "crm_column": "customer_name",
-              "operator": "equals",
-              "value": "Inner Mongolia",
-              "logical_operator": "",
-              "transformation": {
-                "action": "set_value",
-                "value": "Manual Payment",
-                "source_crm_column": "",
-                "formula": ""
-              }
-            }
-          ],
-          "created_at": "2026-02-17T15:44:52.036340",
-          "updated_at": "2026-02-17T15:44:52.036346",
-          "notes": "Set payment method to Manual Payment for Inner Mongolia customers"
-        },
-        "munaray": {
-          "priority": 1,
-          "enabled": true,
-          "conditions": [
-            {
-              "crm_column": "customer_name",
-              "operator": "equals",
-              "value": "Munaray",
-              "logical_operator": "",
-              "transformation": {
-                "action": "set_value",
-                "value": "Bank Deposit",
-                "source_crm_column": "",
-                "formula": ""
-              }
-            }
-          ],
-          "created_at": "2026-02-17T15:44:55.727415",
-          "updated_at": "2026-02-17T15:44:55.727421",
-          "notes": "Set payment method to Bank Deposit for Munaray"
-        },
         "abc_trading": {
           "priority": 1,
           "enabled": true,
