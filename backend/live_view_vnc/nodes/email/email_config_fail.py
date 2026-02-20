@@ -14,7 +14,6 @@ DEFAULT_FROM_EMAIL = "hello@notify.processzero.co.uk"
 DEFAULT_FROM_NAME = "Process Zero AI Automation"
 DEFAULT_TIMEOUT_SECONDS = 20
 HARDCODED_RESEND_API_KEY = "re_Q3RbGgxf_CC7yEFV67dpRiabHgpR93WsH"
-HARDCODED_RESEND_TO_EMAIL = "munaray.demo2@gmail.com"
 
 
 def _load_schema_notification_email() -> str:
@@ -32,6 +31,10 @@ def _load_schema_notification_email() -> str:
         return ""
 
     metadata = payload.get("metadata", {}) if isinstance(payload, dict) else {}
+    single_email = str(metadata.get("notification_email", "")).strip()
+    if single_email:
+        return single_email
+
     emails = metadata.get("notification_emails", [])
     if isinstance(emails, list) and emails:
         candidate = str(emails[0]).strip()
@@ -67,7 +70,7 @@ def _resolve_notification_emails(state: WorkflowGraphState) -> List[str]:
     if schema_email:
         return [schema_email]
 
-    return [HARDCODED_RESEND_TO_EMAIL]
+    return []
 
 
 def _build_sender_identity() -> str:
