@@ -1,6 +1,8 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+import re
+
+from pydantic import BaseModel, Field, field_validator
 
 
 class ConditionalStringRule(BaseModel):
@@ -58,6 +60,21 @@ class TransformRules(BaseModel):
     deliveryDays: ConditionalIntRule
     customerReference: CustomerReferenceRule = Field(default_factory=CustomerReferenceRule)
     paymentReference: PaymentReferenceRule = Field(default_factory=PaymentReferenceRule)
+    notificationEmail: str | None = None
+
+    @field_validator("notificationEmail")
+    @classmethod
+    def validate_notification_email(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        email = value.strip()
+        if not email:
+            return None
+        if "," in email or ";" in email:
+            raise ValueError("notificationEmail must be a single email address")
+        if not re.fullmatch(r"^[^\s@]+@[^\s@]+\.[^\s@]+$", email):
+            raise ValueError("notificationEmail must be a valid email address")
+        return email
 
     model_config = {
         # Allow arbitrary top-level rule names so users can create new rules dynamically.

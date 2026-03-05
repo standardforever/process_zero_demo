@@ -2,6 +2,7 @@ import { API_BASE } from "./constants";
 import type { RuleRecord, RulesStore } from "./types";
 
 const AGENT_RULES_KEY = "transformAgentRules";
+const NOTIFICATION_EMAIL_KEY = "notificationEmail";
 
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
@@ -34,6 +35,14 @@ function extractAgentRules(payload: unknown): RulesStore {
   const section = payload[AGENT_RULES_KEY];
   if (!isObject(section)) return {};
   return section as RulesStore;
+}
+
+function extractNotificationEmail(payload: unknown): string | null {
+  if (!isObject(payload)) return null;
+  const value = payload[NOTIFICATION_EMAIL_KEY];
+  if (typeof value !== "string") return null;
+  const normalized = value.trim();
+  return normalized ? normalized : null;
 }
 
 async function loadRawRulesPayload(): Promise<Record<string, unknown>> {
@@ -85,6 +94,39 @@ export const rulesApi = {
     raw[AGENT_RULES_KEY] = nextRules;
     await request("PUT", "/api/rules", raw);
     return { deleted: name, remaining: Object.keys(nextRules).length };
+  },
+  getNotificationEmail: async (): Promise<string | null> => {
+    const raw = await loadRawRulesPayload();
+    return extractNotificationEmail(raw);
+  },
+  addNotificationEmail: async (email: string): Promise<string> => {
+    const raw = await loadRawRulesPayload();
+    const existing = extractNotificationEmail(raw);
+    if (existing) {
+      throw new Error("Notification email already exists. Use update email.");
+    }
+    raw[NOTIFICATION_EMAIL_KEY] = email;
+    await request("PUT", "/api/rules", raw);
+    return email;
+  },
+  updateNotificationEmail: async (email: string): Promise<string> => {
+    const raw = await loadRawRulesPayload();
+    const existing = extractNotificationEmail(raw);
+    if (!existing) {
+      throw new Error("No notification email found. Use add email first.");
+    }
+    raw[NOTIFICATION_EMAIL_KEY] = email;
+    await request("PUT", "/api/rules", raw);
+    return email;
+  },
+  deleteNotificationEmail: async (): Promise<void> => {
+    const raw = await loadRawRulesPayload();
+    const existing = extractNotificationEmail(raw);
+    if (!existing) {
+      throw new Error("No notification email found.");
+    }
+    delete raw[NOTIFICATION_EMAIL_KEY];
+    await request("PUT", "/api/rules", raw);
   },
   ping: async (): Promise<boolean> => {
     try {

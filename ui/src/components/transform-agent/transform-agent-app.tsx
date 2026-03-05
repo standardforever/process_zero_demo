@@ -11,6 +11,7 @@ import {
   RulesIcon,
   SendIcon,
 } from "./icons";
+import { InlineEmailForm } from "./inline-email-form";
 import { InlineRuleForm } from "./inline-rule-form";
 import { AgentBubble, UserBubble } from "./message-bubbles";
 import {
@@ -55,7 +56,7 @@ function toRuleRecord(form: FormValues): RuleRecord {
 }
 
 function isCommandIntent(intent: Intent): boolean {
-  return ["ADD_RULE", "LIST_RULES", "EDIT_RULE", "DELETE_RULE", "GET_RULE", "HELP"].includes(intent.type);
+  return ["ADD_RULE", "LIST_RULES", "EDIT_RULE", "DELETE_RULE", "GET_RULE", "ADD_EMAIL", "UPDATE_EMAIL", "DELETE_EMAIL", "HELP"].includes(intent.type);
 }
 
 export function TransformAgentApp() {
@@ -65,6 +66,8 @@ export function TransformAgentApp() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [chatMode, setChatMode] = useState<ChatMode>(null);
   const [formData, setFormData] = useState<FormValues | null>(null);
+  const [emailFormValue, setEmailFormValue] = useState("");
+  const [notificationEmail, setNotificationEmail] = useState<string | null>(null);
   const [pendingRuleName, setPendingRuleName] = useState<string | null>(null);
   const [apiStatus, setApiStatus] = useState<"connecting" | "online" | "offline">("connecting");
   const [apiLoading, setApiLoading] = useState(false);
@@ -98,8 +101,12 @@ export function TransformAgentApp() {
   const refreshRules = useCallback(async (): Promise<RulesStore> => {
     try {
       setApiLoading(true);
-      const nextRules = await rulesApi.list();
+      const [nextRules, nextNotificationEmail] = await Promise.all([
+        rulesApi.list(),
+        rulesApi.getNotificationEmail(),
+      ]);
       setRules(nextRules);
+      setNotificationEmail(nextNotificationEmail);
       return nextRules;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Could not load rules.";
@@ -137,8 +144,17 @@ export function TransformAgentApp() {
   const cancelFormMode = () => {
     setChatMode(null);
     setFormData(null);
+    setEmailFormValue("");
     setPendingRuleName(null);
-    setMessages((prev) => prev.filter((msg) => !(msg.role === "agent" && msg.kind === "inline_form")));
+    setMessages((prev) =>
+      prev.filter(
+        (msg) =>
+          !(
+            msg.role === "agent" &&
+            (msg.kind === "inline_form" || msg.kind === "inline_email_form")
+          ),
+      ),
+    );
     say("Okay, cancelled. What do you want to do next?");
   };
 
@@ -212,8 +228,48 @@ export function TransformAgentApp() {
       return;
     }
 
+    if (intent.type === "ADD_EMAIL") {
+      if (notificationEmail) {
+        say(`Notification email already set to **${notificationEmail}**. Use **update email** to change it.`);
+        return;
+      }
+      say("Add notification email: enter the email below, then click **Send**.");
+      setTimeout(() => {
+        setEmailFormValue("");
+        setChatMode("submit_add_email");
+        pushAgent({ kind: "inline_email_form", formSubmitted: false });
+      }, 300);
+      return;
+    }
+
+    if (intent.type === "UPDATE_EMAIL") {
+      if (!notificationEmail) {
+        say("No notification email is configured yet. Use **add email** first.");
+        return;
+      }
+      say(`Update notification email (current: **${notificationEmail}**).`);
+      setTimeout(() => {
+        setEmailFormValue(notificationEmail);
+        setChatMode("submit_update_email");
+        pushAgent({ kind: "inline_email_form", formSubmitted: false });
+      }, 300);
+      return;
+    }
+
+    if (intent.type === "DELETE_EMAIL") {
+      if (!notificationEmail) {
+        say("No notification email is configured to delete.");
+        return;
+      }
+      setChatMode("confirm_delete_email");
+      say(`Delete notification email **${notificationEmail}**? Type **yes** to confirm or **no** to cancel.`);
+      return;
+    }
+
     if (intent.type === "HELP") {
-      say("Commands: **add rule**, **list rules**, **edit rule <name>**, **delete rule <name>**, **get rule <name>**, **cancel**.");
+      say(
+        "Commands: **add rule**, **list rules**, **edit rule <name>**, **delete rule <name>**, **get rule <name>**, **add email**, **update email**, **delete email**, **cancel**.",
+      );
       return;
     }
 
@@ -227,8 +283,11 @@ export function TransformAgentApp() {
         "3. **edit rule <name>**\n" +
         "4. **delete rule <name>**\n" +
         "5. **get rule <name>**\n" +
-        "6. **cancel**\n" +
-        "7. **help**\n\n" +
+        "6. **add email**\n" +
+        "7. **update email**\n" +
+        "8. **delete email**\n" +
+        "9. **cancel**\n" +
+        "10. **help**\n\n" +
         "Suggestions:\n" +
         suggestionLines,
     );
@@ -248,8 +307,7 @@ export function TransformAgentApp() {
       if (chatMode === "submit_add") await rulesApi.add(name, payload);
       else await rulesApi.update(pendingRuleName ?? name, payload);
 
-      const nextRules = await rulesApi.list();
-      setRules(nextRules);
+      const nextRules = await refreshRules();
 
       setMessages((prev) =>
         prev.map((msg) =>
@@ -260,6 +318,7 @@ export function TransformAgentApp() {
       const action: RuleAction = chatMode === "submit_add" ? "created" : "updated";
       setChatMode(null);
       setFormData(null);
+      setEmailFormValue("");
       setPendingRuleName(null);
 
       say(action === "created" ? `Rule for **${name}** created.` : `Rule for **${name}** updated.`);
@@ -273,15 +332,65 @@ export function TransformAgentApp() {
     }
   };
 
+  const submitEmailForm = async () => {
+    const email = emailFormValue.trim();
+    if (!email) {
+      say("⚠️ Email is required before saving.");
+      return;
+    }
+
+    const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    if (!isValidEmail) {
+      say("⚠️ Enter a valid email address.");
+      return;
+    }
+
+    try {
+      setApiLoading(true);
+      if (chatMode === "submit_add_email") {
+        await rulesApi.addNotificationEmail(email);
+      } else {
+        await rulesApi.updateNotificationEmail(email);
+      }
+
+      await refreshRules();
+
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg.role === "agent" && msg.kind === "inline_email_form" ? { ...msg, formSubmitted: true } : msg,
+        ),
+      );
+
+      setChatMode(null);
+      setEmailFormValue("");
+      setPendingRuleName(null);
+      say(`Notification email saved: **${email}**.`);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Email save failed";
+      say(`⚠️ **API Error:** ${message}`);
+    } finally {
+      setApiLoading(false);
+    }
+  };
+
   const handleSend = async () => {
-    if (chatMode === "submit_add" || chatMode === "submit_edit") {
+    if (
+      chatMode === "submit_add" ||
+      chatMode === "submit_edit" ||
+      chatMode === "submit_add_email" ||
+      chatMode === "submit_update_email"
+    ) {
       const text = input.trim();
 
       // In form mode:
       // - empty input + Send => submit
       // - typed "cancel"/commands => handle as intent instead of validating form
       if (!text) {
-        await submitForm();
+        if (chatMode === "submit_add" || chatMode === "submit_edit") {
+          await submitForm();
+        } else {
+          await submitEmailForm();
+        }
         return;
       }
 
@@ -298,13 +407,22 @@ export function TransformAgentApp() {
       if (isCommandIntent(intent)) {
         setChatMode(null);
         setFormData(null);
+        setEmailFormValue("");
         setPendingRuleName(null);
-        setMessages((prev) => prev.filter((msg) => !(msg.role === "agent" && msg.kind === "inline_form")));
+        setMessages((prev) =>
+          prev.filter(
+            (msg) =>
+              !(
+                msg.role === "agent" &&
+                (msg.kind === "inline_form" || msg.kind === "inline_email_form")
+              ),
+          ),
+        );
         await dispatchIntent(intent);
         return;
       }
 
-      say("You are editing a rule form. Click **Send** to save, or type **cancel** to exit form mode.");
+      say("You are editing a form. Click **Send** to save, or type **cancel** to exit form mode.");
       return;
     }
 
@@ -397,6 +515,33 @@ export function TransformAgentApp() {
       return;
     }
 
+    if (chatMode === "confirm_delete_email") {
+      if (isCommandIntent(intent)) {
+        setChatMode(null);
+        await dispatchIntent(intent);
+        return;
+      }
+
+      if (intent.type === "YES") {
+        try {
+          setApiLoading(true);
+          await rulesApi.deleteNotificationEmail();
+          await refreshRules();
+          setChatMode(null);
+          say("Notification email deleted.");
+        } catch (error) {
+          const message = error instanceof Error ? error.message : "Delete failed";
+          say(`⚠️ **API Error:** ${message}`);
+        } finally {
+          setApiLoading(false);
+        }
+      } else {
+        setChatMode(null);
+        say("Delete email cancelled.");
+      }
+      return;
+    }
+
     await dispatchIntent(intent);
   };
 
@@ -411,7 +556,13 @@ export function TransformAgentApp() {
     [],
   );
 
-  const sendActive = (chatMode === "submit_add" || chatMode === "submit_edit" ? true : !!input.trim()) &&
+  const isSubmitFormMode =
+    chatMode === "submit_add" ||
+    chatMode === "submit_edit" ||
+    chatMode === "submit_add_email" ||
+    chatMode === "submit_update_email";
+
+  const sendActive = (isSubmitFormMode ? true : !!input.trim()) &&
     apiStatus !== "offline" &&
     !apiLoading;
 
@@ -427,7 +578,7 @@ export function TransformAgentApp() {
             <span className={`h-1.5 w-1.5 rounded-full ${apiStatus === "online" ? "bg-emerald-400" : apiStatus === "offline" ? "bg-rose-400" : "bg-amber-400"}`} />
             <span className={apiStatus === "online" ? "text-emerald-300" : apiStatus === "offline" ? "text-rose-300" : "text-amber-300"}>
               {apiStatus === "online"
-                ? `ONLINE · ${Object.keys(rules).length} RULES ACTIVE${apiLoading ? " · SYNCING" : ""}`
+                ? `ONLINE · ${Object.keys(rules).length} RULES ACTIVE · EMAIL: ${notificationEmail ? "CONFIGURED" : "NOT CONFIGURED"}${apiLoading ? " · SYNCING" : ""}`
                 : apiStatus === "offline"
                   ? "OFFLINE - START FASTAPI"
                   : "CONNECTING"}
@@ -491,6 +642,23 @@ export function TransformAgentApp() {
                       formData={formData ?? makeDefaults()}
                       submitted={message.formSubmitted}
                       onChange={setFormData}
+                    />
+                  )}
+                </AgentBubble>
+              );
+            }
+
+            if (message.kind === "inline_email_form") {
+              return (
+                <AgentBubble key={message.id} time={message.time}>
+                  {message.formSubmitted ? (
+                    <p className="text-sm text-emerald-300">Email submitted successfully.</p>
+                  ) : (
+                    <InlineEmailForm
+                      mode={chatMode === "submit_update_email" ? "update" : "add"}
+                      email={emailFormValue}
+                      submitted={message.formSubmitted}
+                      onChange={setEmailFormValue}
                     />
                   )}
                 </AgentBubble>
@@ -563,11 +731,18 @@ export function TransformAgentApp() {
 
       <div className="shrink-0 px-6 pb-6 pt-3">
         <div className="mx-auto max-w-4xl">
-          {(chatMode === "submit_add" || chatMode === "submit_edit") ? (
+          {isSubmitFormMode ? (
             <div className="mb-2 flex items-center gap-2 rounded-lg border border-slate-600 bg-slate-900 px-4 py-2 text-xs text-slate-300">
               <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-sky-300" />
               <span className="font-mono tracking-[0.04em]">
-                {chatMode === "submit_add" ? "New Rule Form Active" : "Edit Form Active"} - Fill Fields and Click Send
+                {chatMode === "submit_add"
+                  ? "New Rule Form Active"
+                  : chatMode === "submit_edit"
+                    ? "Edit Rule Form Active"
+                    : chatMode === "submit_add_email"
+                      ? "Add Email Form Active"
+                      : "Update Email Form Active"}{" "}
+                - Fill Fields and Click Send
               </span>
               <button type="button" className="ml-auto text-slate-400 hover:text-slate-200" onClick={cancelFormMode}>
                 Cancel
@@ -629,8 +804,14 @@ export function TransformAgentApp() {
                   ? "Form ready - click Send to save"
                   : chatMode === "submit_edit"
                     ? "Edits ready - click Send to update"
+                    : chatMode === "submit_add_email"
+                      ? "Email ready - click Send to save"
+                      : chatMode === "submit_update_email"
+                        ? "Email ready - click Send to update"
                     : chatMode === "confirm_delete"
                       ? "Type yes to confirm, no to cancel"
+                      : chatMode === "confirm_delete_email"
+                        ? "Type yes to confirm, no to cancel"
                       : chatMode?.startsWith("await")
                         ? "Type a customer name"
                         : "Type command or question"
@@ -648,7 +829,7 @@ export function TransformAgentApp() {
             >
               {apiLoading ? (
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-              ) : chatMode === "submit_add" || chatMode === "submit_edit" ? (
+              ) : isSubmitFormMode ? (
                 <>
                   <CheckIcon />
                   Save

@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "lastUpdated": "2026-03-02T10:58:21Z",
+  "lastUpdated": "2026-03-05T08:05:46Z",
   "customerNameMapping": {
     "Universal Supplies": "Universal Supplies Limited",
     "Red Internet": "Red Internet Limited"
@@ -58,5 +58,19 @@
     "crmSourceIdField": "crm_source_system_id",
     "fallbackSourceIdField": "sales_request_ref",
     "useInvoiceTotalWithoutDecimals": true
+  },
+  "transformAgentRules": {
+    "james": {
+      "erp_customer_name": "james ltd",
+      "taxes": "10%",
+      "terms_and_conditions": "Standard T&C v1",
+      "payment_method": "Bank Transfer",
+      "sales_person": "Alice Johnson",
+      "payment_terms": "Due on Receipt",
+      "payment_reference": "PAY-MMD6KQ81",
+      "customer_reference": "CUS-Z1M0K",
+      "invoice_date": "2026-03-05",
+      "invoice_reference": "SALES-REF-2026-03"
+    }
   }
 }

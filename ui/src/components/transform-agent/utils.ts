@@ -7,6 +7,9 @@ export const SUPPORTED_COMMANDS = [
   "edit rule <name>",
   "delete rule <name>",
   "get rule <name>",
+  "add email",
+  "update email",
+  "delete email",
   "cancel",
   "help",
 ] as const;
@@ -72,6 +75,9 @@ export function parseIntent(raw: string): Intent {
 
   if (lower === "add rule") return { type: "ADD_RULE" };
   if (lower === "list rules") return { type: "LIST_RULES" };
+  if (lower === "add email") return { type: "ADD_EMAIL" };
+  if (lower === "update email") return { type: "UPDATE_EMAIL" };
+  if (lower === "delete email") return { type: "DELETE_EMAIL" };
   if (lower === "help") return { type: "HELP" };
 
   if (lower === "edit rule") return { type: "EDIT_RULE", name: null };
@@ -96,10 +102,16 @@ export function suggestCommands(raw: string): string[] {
   const suggestions = new Set<string>();
 
   if (lower.startsWith("list")) suggestions.add("list rules");
+  if (lower.startsWith("add e")) suggestions.add("add email");
   if (lower.startsWith("add")) suggestions.add("add rule");
   if (lower.startsWith("edit")) suggestions.add("edit rule <name>");
+  if (lower.startsWith("delete e")) suggestions.add("delete email");
   if (lower.startsWith("delete")) suggestions.add("delete rule <name>");
   if (lower.startsWith("get")) suggestions.add("get rule <name>");
+  if (lower.startsWith("update")) suggestions.add("update email");
+  if (lower === "add email") suggestions.add("add email");
+  if (lower === "update email") suggestions.add("update email");
+  if (lower === "delete email") suggestions.add("delete email");
   if (lower === "list rule") suggestions.add("list rules");
   if (lower.includes("cancel")) suggestions.add("cancel");
   if (lower.includes("help")) suggestions.add("help");
@@ -122,12 +134,15 @@ export function findRuleName(input: string | null, rules: RulesStore): string | 
   // Prevent command-like inputs from fuzzy-matching arbitrary rule names.
   const blocked = new Set([
     "add rule",
+    "add email",
     "list rule",
     "list rules",
     "edit rule",
     "edit rules",
+    "update email",
     "delete rule",
     "delete rules",
+    "delete email",
     "get rule",
     "get rules",
     "rule",

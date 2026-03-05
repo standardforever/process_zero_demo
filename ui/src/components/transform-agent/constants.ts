@@ -52,5 +52,8 @@ Commands:
 **edit rule <name>** - modify a customer rule
 **delete rule <name>** - remove a rule
 **get rule <name>** - inspect one rule
+**add email** - add notification email
+**update email** - update notification email
+**delete email** - delete notification email
 **cancel** - exit current form or pending action
 **help** - show command summary`;
