@@ -59,18 +59,104 @@
     "fallbackSourceIdField": "sales_request_ref",
     "useInvoiceTotalWithoutDecimals": true
   },
+  
   "transformAgentRules": {
-    "james": {
-      "erp_customer_name": "james ltd",
-      "taxes": "10%",
-      "terms_and_conditions": "Standard T&C v1",
-      "payment_method": "Bank Transfer",
-      "sales_person": "Alice Johnson",
-      "payment_terms": "Due on Receipt",
-      "payment_reference": "PAY-MMD6KQ81",
-      "customer_reference": "CUS-Z1M0K",
+    "abc trading": {
+      "erp_customer_name": "ABC Trading Limited",
+      "taxes": "20%",
+      "terms_and_conditions": "45 Days",
+      "payment_method": "Manual Payment",
+      "sales_person": "Alan Smith",
+      "payment_terms": "45 Days: The full amount listed on this invoice is payable within 45 days of the date of issue.",
+      "payment_reference": "ABC1514-SO10020",
+      "customer_reference": "ABC1514",
       "invoice_date": "2026-03-05",
-      "invoice_reference": "SALES-REF-2026-03"
+      "invoice_reference": "SO10020"
+    },
+    "echo it services": {
+      "erp_customer_name": "EKHO IT Services",
+      "taxes": "20%",
+      "terms_and_conditions": "21 Days",
+      "payment_method": "Manual Payment",
+      "sales_person": "Martin McDonagh",
+      "payment_terms": "21 Days: The total balance of this invoice is strictly due within 21 days of the issue date.",
+      "payment_reference": "Ech6921-SO10018",
+      "customer_reference": "Ech6921",
+      "invoice_date": "2026-03-05",
+      "invoice_reference": "SO10018"
+    },
+    "red internet": {
+      "erp_customer_name": "Red Internet Limited",
+      "taxes": "20%",
+      "terms_and_conditions": "30 Days",
+      "payment_method": "Manual Payment",
+      "sales_person": "Joan Gold",
+      "payment_terms": "30 Days: Full payment for these goods or services must be received within 30 days of the invoice date.",
+      "payment_reference": "Red9383-SO10019",
+      "customer_reference": "Red9383",
+      "invoice_date": "2026-03-05",
+      "invoice_reference": "SO10019"
+    },
+    "red internet limited": {
+      "erp_customer_name": "Red Internet limited",
+      "taxes": "20%",
+      "terms_and_conditions": "21 Days",
+      "payment_method": "Manual Payment",
+      "sales_person": "Joan Gold",
+      "payment_terms": "21 Days: The total balance of this invoice is strictly due within 21 days of the issue date.",
+      "payment_reference": "Red6789-SO10012",
+      "customer_reference": "Red6789",
+      "invoice_date": "2026-03-05",
+      "invoice_reference": "SO10012"
+    },
+    "sony entertainment": {
+      "erp_customer_name": "Sony Entertainment Incorporated",
+      "taxes": "20%",
+      "terms_and_conditions": "15 Days",
+      "payment_method": "Manual Payment",
+      "sales_person": "Martin McDonagh",
+      "payment_terms": "15 Days: Payment must be made in full within 15 days from the invoice date.",
+      "payment_reference": "Son3715-SO10005",
+      "customer_reference": "Son3715",
+      "invoice_date": "2026-03-05",
+      "invoice_reference": "SO10005"
+    },
+    "trade direct": {
+      "erp_customer_name": "Trade Direct Limited",
+      "taxes": "20%",
+      "terms_and_conditions": "30% Now, Balance 60 Days",
+      "payment_method": "Manual Payment",
+      "sales_person": "Martin McDonagh",
+      "payment_terms": "30% Now, Balance 60 Days: A 30% upfront deposit is required immediately upon receipt, with the remaining balance due in full within 60 days from the invoice date.",
+      "payment_reference": "Tra6807-SO10009",
+      "customer_reference": "Tra6807",
+      "invoice_date": "2026-03-05",
+      "invoice_reference": "SO10009"
+    },
+    "universal supplies": {
+      "erp_customer_name": "Universal Supplies Limited",
+      "taxes": "20%",
+      "terms_and_conditions": "Immediate Payment",
+      "payment_method": "Manual Payment",
+      "sales_person": "Joan Gold",
+      "payment_terms": "Immediate Payment: Payment is due in full immediately upon receipt of this invoice.",
+      "payment_reference": "Uni3544-SO10016",
+      "customer_reference": "Uni3544",
+      "invoice_date": "2026-03-05",
+      "invoice_reference": "SO10016"
+    },
+    "wrath trading": {
+      "erp_customer_name": "Wrath Trading Limited",
+      "taxes": "20%",
+      "terms_and_conditions": "15 Days",
+      "payment_method": "Manual Payment",
+      "sales_person": "Alan Smith",
+      "payment_terms": "15 Days: Payment must be made in full within 15 days from the invoice date.",
+      "payment_reference": "Wra3290-SO10017",
+      "customer_reference": "Wra3290",
+      "invoice_date": "2026-03-05",
+      "invoice_reference": "SO10017"
     }
   }
 }
+
