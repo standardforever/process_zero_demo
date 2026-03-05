@@ -1,8 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
-
-import RulesNavLink from "@/components/rules-nav-link";
 
 import "./globals.css";
 
@@ -28,24 +25,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body className={`pz-theme ${geistSans.variable} ${geistMono.variable} antialiased`}>
         <div className="min-h-screen">
-          <nav className="sticky top-0 z-30 border-b border-slate-200 bg-white/90 backdrop-blur">
-            <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-              <Link href="/" className="text-sm font-bold uppercase tracking-[0.2em] text-cyan-700">
-                Transformer
-              </Link>
-              <div className="flex items-center gap-3 text-sm font-medium text-slate-600">
-                <Link href="/schema" className="rounded-md px-3 py-1 hover:bg-slate-100">
-                  Schema
-                </Link>
-                <RulesNavLink />
-                {/* Demo mode: hide Data and Transform navigation. */}
-                {/* <Link href="/data" className="rounded-md px-3 py-1 hover:bg-slate-100">Data</Link> */}
-                {/* <Link href="/transform" className="rounded-md px-3 py-1 hover:bg-slate-100">Transform</Link> */}
-              </div>
-            </div>
-          </nav>
+          {/* Shared layout header is intentionally disabled for this single-page TransformAgent UI. */}
           {children}
         </div>
       </body>

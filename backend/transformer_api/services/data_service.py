@@ -6,7 +6,7 @@ from typing import Any
 
 from ..models.crm_record import CRMRecord
 
-ROOT_DIR = Path(__file__).resolve().parents[2]
+ROOT_DIR = Path(__file__).resolve().parents[3]
 VISIBLE_ROWS_FILE = ROOT_DIR / "visible_rows.json"
 
 

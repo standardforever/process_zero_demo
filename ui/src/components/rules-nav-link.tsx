@@ -32,7 +32,7 @@ export default function RulesNavLink() {
 
   if (canUseChat) {
     return (
-      <Link href="/rules" className="rounded-md px-3 py-1 hover:bg-slate-100">
+      <Link href="/rules" className="rounded-md px-3 py-1.5 hover:bg-slate-100">
         Rules Chat
       </Link>
     );
@@ -43,7 +43,7 @@ export default function RulesNavLink() {
       type="button"
       disabled
       title="Locked: add ERP column, CRM column, and one notification email in Schema."
-      className="cursor-not-allowed rounded-md px-3 py-1 text-slate-400">
+      className="cursor-not-allowed rounded-md px-3 py-1.5 text-slate-400">
       Rules Chat
     </button>
   );

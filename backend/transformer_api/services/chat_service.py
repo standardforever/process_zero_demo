@@ -2,205 +2,184 @@ from __future__ import annotations
 
 import json
 import re
-from pathlib import Path
 from typing import Any
 
-from .schema_store_service import get_schema_store_status
-from ..transformer import create_llm_manager
+from .rules_ai_service import copilot_assist, explain_rules_for_situation
+from .rules_service import get_rule_type, load_rules_dict
 
-RULES_FILE = Path(__file__).resolve().parents[2] / "live_view_vnc" / "transformation_rules.json"
-SCHEMA_SETUP_PATH = "/transformer/schema"
+HELP_TEXT = (
+    "Hello. I can help you create, update, explain, list, and delete transformation rules.\n\n"
+    "Try prompts like:\n"
+    "1. Add a sales tax rule for ACME set to 10%\n"
+    "2. Show me all available rules\n"
+    "3. Explain which rules apply for Sony Entertainment\n"
+    "4. Update payment terms for ABC Trading to 21 Days\n"
+    "5. Delete the rule for customer Red Internet"
+)
 
-_manager = None
-
-
-def _get_manager():
-    global _manager
-    if _manager is None:
-        _manager = create_llm_manager(rules_file=str(RULES_FILE))
-    return _manager
-
-
-def _is_greeting(text: str) -> bool:
-    normalized = re.sub(r"[^\w\s]", "", text.lower()).strip()
-    return normalized in {
-        "hi",
-        "hello",
-        "hey",
-        "yo",
-        "good morning",
-        "good afternoon",
-        "good evening",
-    }
-
-
-def _is_help_request(text: str) -> bool:
-    text_lc = text.lower()
-    help_patterns = [
-        r"\bhow\b.*\bcreate\b.*\brule\b",
-        r"\bcreate\b.*\bnew\b.*\brule\b",
-        r"\bguide\b.*\brule\b",
-        r"\bhelp\b",
-        r"\bwhat can you do\b",
-    ]
-    return any(re.search(pattern, text_lc) for pattern in help_patterns)
+GREETING_PATTERN = re.compile(
+    r"^\s*(hi|hello|hey|yo|good morning|good afternoon|good evening)\b[!. ]*$",
+    re.IGNORECASE,
+)
+HELP_PATTERN = re.compile(
+    r"\b(help|how do i use|what can you do|guide me|how can you help)\b",
+    re.IGNORECASE,
+)
+LIST_ALL_PATTERN = re.compile(
+    r"\b(list|show|display|get)\b.*\b(all|available)?\s*rules\b|\bwhat rules\b|\bwhat rule types\b",
+    re.IGNORECASE,
+)
+EXPLAIN_PATTERN = re.compile(
+    r"\b(explain|which rules apply|what applies|what happens for|summarize rules for)\b",
+    re.IGNORECASE,
+)
+MUTATION_PATTERN = re.compile(
+    r"\b(add|create|update|change|set|delete|remove)\b",
+    re.IGNORECASE,
+)
 
 
-def _is_continue_message(text: str) -> bool:
-    normalized = re.sub(r"[^\w\s]", "", text.lower()).strip()
-    return normalized in {"continue", "im done", "i am done", "done", "lets continue"}
+def _normalize_messages(messages: list[dict[str, str]] | None) -> list[dict[str, str]]:
+    normalized: list[dict[str, str]] = []
+    for item in messages or []:
+        role = str(item.get("role", "")).strip().lower()
+        content = str(item.get("content", "")).strip()
+        if role not in {"user", "assistant"} or not content:
+            continue
+        normalized.append({"role": role, "content": content})
+    return normalized[-20:]
 
 
-def _schema_required_response() -> dict[str, Any]:
-    status = get_schema_store_status()
-    missing: list[str] = []
-    if not status.get("has_erp_columns"):
-        missing.append("at least one ERP column")
-    if not status.get("has_crm_columns"):
-        missing.append("at least one CRM column")
-    if not (status.get("has_notification_email") or status.get("has_notification_emails")):
-        missing.append("one notification email")
-
-    missing_text = ", ".join(missing) if missing else "required schema setup items"
-    message = (
-        "Schema setup is not complete yet. Please add "
-        f"{missing_text} first.\n"
-        f"Open Schema Setup: {SCHEMA_SETUP_PATH}\n"
-        "When done, send: Continue"
-    )
-    return {
-        "status": "schema_required",
-        "message": message,
-        "schema_status": status,
-        "schema_url": SCHEMA_SETUP_PATH,
-    }
+def _extract_latest_user_message(messages: list[dict[str, str]]) -> str:
+    for item in reversed(messages):
+        if item["role"] == "user":
+            return item["content"]
+    return ""
 
 
-def _help_message() -> str:
-    return (
-        "Hello. I can help you create, update, delete, and list transformation rules.\n"
-        "Before rule operations, ensure schema setup is complete:\n"
-        f"- Add ERP column(s)\n- Add CRM column(s)\n- Add one notification email\n"
-        f"Open Schema Setup: {SCHEMA_SETUP_PATH}\n\n"
-        "Example:\n"
-        "Add a rule in sales_tax_rate: if customer_name equals \"ACME\", set value to \"10%\""
-    )
+def _extract_known_rule_type(text: str) -> str | None:
+    rules = load_rules_dict()
+    for rule_type in rules.keys():
+        if rule_type in {"version", "lastUpdated"}:
+            continue
+        if rule_type.lower() in text.lower():
+            return rule_type
+    return None
+
+
+def _format_rule_types_summary() -> str:
+    rules = load_rules_dict()
+    items = [key for key in rules.keys() if key not in {"version", "lastUpdated"}]
+    if not items:
+        return "No rule types are available."
+    lines = [f"{index}. {item}" for index, item in enumerate(items, start=1)]
+    return "Available rule types:\n" + "\n".join(lines)
 
 
 def process_chat_message(message: str) -> dict[str, Any]:
     text = message.strip()
     if not text:
         raise ValueError("Message is required")
+    return process_chat_messages([{"role": "user", "content": text}])
 
-    if _is_greeting(text):
+
+def process_chat_messages(messages: list[dict[str, str]]) -> dict[str, Any]:
+    normalized_messages = _normalize_messages(messages)
+    if not normalized_messages:
+        raise ValueError("Message is required")
+
+    latest_user_message = _extract_latest_user_message(normalized_messages).strip()
+    if not latest_user_message:
+        raise ValueError("Message is required")
+
+    if GREETING_PATTERN.match(latest_user_message):
+        return {"status": "success", "message": "Hello. How can I help you with your transformation rules today?"}
+
+    if HELP_PATTERN.search(latest_user_message):
+        return {"status": "success", "message": HELP_TEXT}
+
+    if LIST_ALL_PATTERN.search(latest_user_message):
+        return {"status": "success", "message": _format_rule_types_summary()}
+
+    rule_type = _extract_known_rule_type(latest_user_message)
+    if rule_type and re.search(r"\b(show|view|get|display)\b", latest_user_message, re.IGNORECASE):
         return {
-            "status": "assistant",
-            "message": "Hello. How can I help you with your rule mappings today?",
+            "status": "success",
+            "message": f"{rule_type}:\n{json.dumps(get_rule_type(rule_type), indent=2, ensure_ascii=False)}",
         }
 
-    if _is_help_request(text):
+    if EXPLAIN_PATTERN.search(latest_user_message):
+        explanation = explain_rules_for_situation(latest_user_message)
         return {
-            "status": "assistant",
-            "message": _help_message(),
+            "status": "success",
+            "message": _format_explain_response(explanation),
         }
 
-    status = get_schema_store_status()
-    if not status.get("can_use_chat"):
-        return _schema_required_response()
-
-    if _is_continue_message(text):
+    copilot_preview = copilot_assist(normalized_messages, apply=False)
+    if copilot_preview.get("mode") == "proposal" and MUTATION_PATTERN.search(latest_user_message):
+        applied = copilot_assist(normalized_messages, apply=True)
         return {
-            "status": "assistant",
-            "message": (
-                "Great. Schema is ready. Share your rule instruction and I will apply it.\n"
-                "Example: Add a rule in sales_tax_rate: if customer_name equals \"ACME\", set value to \"10%\""
-            ),
+            "status": "success",
+            "message": _format_copilot_response(applied),
+            "payload": applied,
         }
 
-    manager = _get_manager()
-    return manager.process_request(text)
+    return {
+        "status": "success",
+        "message": _format_copilot_response(copilot_preview),
+        "payload": copilot_preview,
+    }
 
 
 def format_chat_response(result: dict[str, Any]) -> str:
-    status = str(result.get("status", "")).strip()
     message = str(result.get("message", "")).strip()
-
-    if status in {"assistant", "schema_required"}:
-        return message or "Request processed."
-
-    if status == "error":
-        return message or "I could not process that request."
-
-    if status == "not_allowed":
-        return message or "That action is not allowed."
-
     if message:
         return message
 
-    if status == "success":
-        if "rules_by_column" in result:
-            return _format_rules_by_column(result)
+    payload = result.get("payload")
+    if isinstance(payload, dict):
+        if "reply" in payload:
+            return _format_copilot_response(payload)
+        if "summary" in payload and "applicable_rules" in payload:
+            return _format_explain_response(payload)
 
-        if "rules" in result and "erp_column" in result:
-            return _format_rules_for_column(result)
-
-        if "summary" in result and isinstance(result.get("summary"), dict):
-            return f"Summary:\n{json.dumps(result.get('summary'), indent=2, ensure_ascii=False)}"
-
-        if "rule" in result and isinstance(result.get("rule"), dict):
-            rule_name = result.get("rule_name", "rule")
-            return f"{rule_name}:\n{json.dumps(result.get('rule'), indent=2, ensure_ascii=False)}"
-
-        if "results" in result and isinstance(result.get("results"), dict):
-            return f"Search results:\n{json.dumps(result.get('results'), indent=2, ensure_ascii=False)}"
-
-        return json.dumps(result, indent=2, ensure_ascii=False)
+    status = str(result.get("status", "")).strip()
+    if status == "error":
+        return "I could not process that request."
 
     return "Request processed."
 
 
-def _format_rules_by_column(result: dict[str, Any]) -> str:
-    rules_by_column = result.get("rules_by_column")
-    if not isinstance(rules_by_column, dict) or not rules_by_column:
-        return "No rules found."
+def _format_copilot_response(payload: dict[str, Any]) -> str:
+    reply = str(payload.get("reply", "")).strip() or "I reviewed your request."
+    questions_raw = payload.get("questions", [])
+    questions = [str(item).strip() for item in questions_raw if str(item).strip()] if isinstance(questions_raw, list) else []
+    if not questions:
+        return reply
 
-    lines: list[str] = []
-    counter = 1
-    for column_name, rules in sorted(rules_by_column.items()):
-        if not isinstance(rules, dict):
-            continue
-        for rule_name, rule_data in sorted(rules.items()):
-            lines.append(f"{counter}. {column_name}.{rule_name} - {_summarize_rule(rule_data)}")
-            counter += 1
-
-    return "\n".join(lines) if lines else "No rules found."
-
-
-def _format_rules_for_column(result: dict[str, Any]) -> str:
-    erp_column = str(result.get("erp_column", "")).strip() or "column"
-    rules = result.get("rules")
-    if not isinstance(rules, dict) or not rules:
-        return f"No rules found for '{erp_column}'."
-
-    lines: list[str] = []
-    for index, (rule_name, rule_data) in enumerate(sorted(rules.items()), start=1):
-        lines.append(f"{index}. {erp_column}.{rule_name} - {_summarize_rule(rule_data)}")
+    lines = [reply, "", "Follow-up Questions"]
+    for index, question in enumerate(questions, start=1):
+        lines.append(f"{index}. {question}")
     return "\n".join(lines)
 
 
-def _summarize_rule(rule_data: Any) -> str:
-    if not isinstance(rule_data, dict):
-        return "rule configured"
+def _format_explain_response(payload: dict[str, Any]) -> str:
+    summary = str(payload.get("summary", "")).strip() or "Rules explanation generated."
+    applicable = payload.get("applicable_rules", [])
+    if not isinstance(applicable, list) or not applicable:
+        return summary
 
-    conditions = rule_data.get("conditions")
-    if not isinstance(conditions, list) or not conditions:
-        return "rule configured"
-
-    first = conditions[0] if isinstance(conditions[0], dict) else {}
-    crm_column = str(first.get("crm_column", "")).strip() or "field"
-    operator = str(first.get("operator", "")).strip() or "matches"
-    value = first.get("value")
-    transformation = first.get("transformation") if isinstance(first.get("transformation"), dict) else {}
-    action = str(transformation.get("action", "")).strip() or "transform"
-    target_value = transformation.get("value")
-    return f"if {crm_column} {operator} {value!r} -> {action} {target_value!r}"
+    lines = [summary, "", "Applicable Rules"]
+    for index, item in enumerate(applicable, start=1):
+        if not isinstance(item, dict):
+            continue
+        rule_type = str(item.get("rule_type", "rule")).strip()
+        match_type = str(item.get("match_type", "")).strip()
+        matched_key = item.get("matched_key")
+        resolved_value = item.get("resolved_value")
+        reason = str(item.get("reason", "")).strip()
+        key_part = f" for {matched_key}" if matched_key else ""
+        lines.append(f"{index}. {rule_type}{key_part} -> {resolved_value!r} ({match_type})")
+        if reason:
+            lines.append(f"   {reason}")
+    return "\n".join(lines)

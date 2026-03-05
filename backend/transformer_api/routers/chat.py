@@ -8,13 +8,14 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from ..services.chat_service import format_chat_response, process_chat_message
+from ..services.chat_service import format_chat_response, process_chat_message, process_chat_messages
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
 
 class ChatStreamRequest(BaseModel):
-    message: str
+    message: str | None = None
+    messages: list[dict[str, str]] | None = None
 
 
 def _sse_event(payload: dict[str, Any]) -> str:
@@ -27,14 +28,18 @@ def _chunk_text(text: str, size: int = 24) -> list[str]:
 
 @router.post("/stream")
 async def stream_chat(payload: ChatStreamRequest) -> StreamingResponse:
-    text = payload.message.strip()
-    if not text:
+    text = (payload.message or "").strip()
+    messages = payload.messages or []
+    if not text and not messages:
         raise HTTPException(status_code=400, detail="Message is required")
 
     async def event_stream() -> AsyncIterator[str]:
         yield _sse_event({"type": "start"})
         try:
-            result = await asyncio.to_thread(process_chat_message, text)
+            if messages:
+                result = await asyncio.to_thread(process_chat_messages, messages)
+            else:
+                result = await asyncio.to_thread(process_chat_message, text)
             response_text = format_chat_response(result)
             for chunk in _chunk_text(response_text):
                 yield _sse_event({"type": "chunk", "content": chunk})

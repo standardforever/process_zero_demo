@@ -200,7 +200,9 @@ export default function RulesPage() {
     <div className="min-h-screen bg-slate-50 px-6 py-8">
       <div className="mx-auto max-w-5xl space-y-4">
         <header className="space-y-2">
-          <h1 className="text-2xl font-bold text-slate-900">Rules Chat</h1>
+          <h1 className="bg-linear-to-r from-[#eef6ff] via-[#93c5fd] to-[#c4b5fd] bg-clip-text text-2xl font-bold text-transparent">
+            Rules Chat
+          </h1>
           <p className="text-sm text-slate-600">
             Chat with AI to create, update, search, and manage transformation rules.
           </p>
@@ -220,9 +222,9 @@ export default function RulesPage() {
         <section className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <div
             ref={scrollRef}
-            className="mb-4 flex max-h-[58vh] flex-col gap-3 overflow-y-auto rounded-lg border border-slate-200 bg-slate-50 p-3">
+            className="mb-4 flex max-h-[58vh] flex-col gap-3 overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50 p-4">
             {messages.length === 0 && (
-              <div className="rounded-lg border border-dashed border-slate-300 bg-white p-3 text-sm text-slate-500">
+              <div className="rounded-2xl border border-dashed border-slate-300 bg-white p-4 text-sm text-slate-500">
                 Say hello, ask for help, or start with:
                 <br />
                 <span className="font-medium">
@@ -236,12 +238,12 @@ export default function RulesPage() {
               return (
                 <div key={`${message.role}-${index}`} className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
                   <div
-                    className={`max-w-[78%] rounded-2xl px-4 py-2 text-sm shadow-sm ${
+                    className={`max-w-[78%] rounded-2xl px-4 py-3 text-sm shadow-sm ${
                       isUser
                         ? "rounded-br-md bg-cyan-700 text-white"
                         : "rounded-bl-md border border-slate-200 bg-white text-slate-900"
                     }`}>
-                    <p className={`mb-1 text-[11px] font-semibold ${isUser ? "text-cyan-100" : "text-slate-500"}`}>
+                    <p className={`mb-1.5 text-[11px] font-semibold uppercase tracking-[0.14em] ${isUser ? "text-cyan-100" : "text-slate-500"}`}>
                       {isUser ? "You" : "Assistant"}
                     </p>
                     <div className="whitespace-pre-wrap break-words">
@@ -258,7 +260,7 @@ export default function RulesPage() {
           </div>
 
           <div className="space-y-2">
-            <div className="flex items-center gap-2 rounded-full border border-slate-300 bg-white px-2 py-2 shadow-sm">
+            <div className="flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-2 shadow-sm">
               <input
                 value={input}
                 onChange={(event) => setInput(event.target.value)}

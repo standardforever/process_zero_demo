@@ -215,12 +215,19 @@ export function deleteNotificationEmail(email: string): Promise<SchemaStore> {
 }
 
 export async function streamTransformerChat(message: string): Promise<Response> {
+  return streamTransformerChatWithMessages([{ role: "user", content: message }], message);
+}
+
+export async function streamTransformerChatWithMessages(
+  messages: RulesAICopilotMessage[],
+  message?: string,
+): Promise<Response> {
   const response = await fetch(`${API_BASE_URL}/chat/stream`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ message }),
+    body: JSON.stringify({ message: message || "", messages }),
     cache: "no-store",
   });
 

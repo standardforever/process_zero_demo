@@ -10,16 +10,16 @@
       theme: {
         extend: {
           colors: {
-            "bg-dark": "#0f1115",
-            "panel": "#151924",
-            "panel-light": "#1b2230",
-            "border-dark": "#2a3347",
-            "border-light": "#202636",
-            "text-primary": "#e8edf5",
-            "text-muted": "#a6b0c3",
-            "accent": "#4da3ff",
-            "accent-green": "#27c07d",
-            "danger": "#ff5f5f",
+            "bg-dark": "#050914",
+            "panel": "#101933",
+            "panel-light": "#172345",
+            "border-dark": "#31466f",
+            "border-light": "#243557",
+            "text-primary": "#f8fbff",
+            "text-muted": "#c0cee5",
+            "accent": "#8ec5ff",
+            "accent-green": "#34d399",
+            "danger": "#ff7a7a",
           },
         },
       },
@@ -28,7 +28,7 @@
 </head>
 <body class="m-0 h-screen w-screen overflow-hidden bg-bg-dark text-text-primary font-sans">
   <div class="flex h-full w-full gap-3 p-3 box-border">
-    <div class="relative flex-1 min-w-0 overflow-hidden rounded-lg bg-panel-light">
+    <div class="relative flex-1 min-w-0 overflow-hidden rounded-xl border border-border-light bg-panel-light shadow-[0_20px_50px_rgba(0,0,0,0.35)]">
       <iframe
         id="vnc-frame"
         class="block h-full w-full border-0 bg-black pointer-events-none locked [&.unlocked]:pointer-events-auto [&.locked]:pointer-events-none"
@@ -36,15 +36,26 @@
       ></iframe>
       <div
         id="intervention-overlay"
-        class="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/50 p-4 text-center text-lg text-white pointer-events-none"
+        class="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-black/50 p-4 text-center text-lg font-semibold text-white pointer-events-none"
       >
         <span id="overlay-title">AI Agent Active</span>
-        <span id="overlay-subtitle">Click "Request Control" to intervene</span>
+        <span id="overlay-subtitle" class="max-w-md text-sm font-medium text-white/90">Click "Request Control" to intervene</span>
       </div>
     </div>
 
-    <div class="flex w-[340px] flex-shrink-0 flex-col gap-4 rounded-lg bg-panel p-4 box-border">
-      <div class="text-lg font-semibold">Agent Live View</div>
+    <div class="flex w-[340px] flex-shrink-0 flex-col gap-4 rounded-xl border border-border-dark bg-panel p-4 text-[15px] shadow-[0_20px_50px_rgba(0,0,0,0.35)] box-border">
+      <div class="flex items-center justify-between gap-2">
+        <div>
+          <div class="text-lg font-semibold tracking-[0.02em] text-white">Agent Live View</div>
+          <div class="text-xs font-medium uppercase tracking-[0.18em] text-[#cddcff]">Process Zero Monitor</div>
+        </div>
+        <a
+          href="/transformer/schema"
+          class="inline-flex items-center justify-center rounded-md bg-gradient-to-r from-[#2563EB] to-[#7C3AED] px-2.5 py-1 text-[11px] font-semibold text-white shadow-sm transition-all hover:brightness-110"
+        >
+          Open Transformer
+        </a>
+      </div>
 
       <div class="flex flex-col gap-2">
         <div class="flex items-center gap-2">
@@ -52,33 +63,33 @@
             class="inline-block h-2.5 w-2.5 rounded-full bg-[#666] [&.on]:bg-accent-green [&.warn]:bg-[#f0a500]"
             id="agent-dot"
           ></span>
-          <span id="agent-status">Agent: Stopped</span>
+          <span id="agent-status" class="font-medium text-white">Agent: Stopped</span>
         </div>
         <div class="flex items-center gap-2">
           <span
             class="inline-block h-2.5 w-2.5 rounded-full bg-[#666] [&.on]:bg-accent-green [&.warn]:bg-[#f0a500]"
             id="intervention-dot"
           ></span>
-          <span id="intervention-status">Control: AI</span>
+          <span id="intervention-status" class="font-medium text-white">Control: AI</span>
         </div>
       </div>
 
       <input
         id="startUrl"
-        class="w-full rounded-md border border-border-dark bg-bg-dark px-2.5 py-2 text-text-primary placeholder-text-muted focus:border-accent focus:outline-none"
+        class="w-full rounded-lg border border-border-dark bg-bg-dark px-3 py-2.5 text-text-primary placeholder-text-muted focus:border-accent focus:outline-none"
         placeholder="Start URL (optional)"
       />
 
       <div class="flex gap-2">
         <button
           id="btnStart"
-          class="flex-1 rounded-md bg-accent px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#3b8ee6] disabled:cursor-not-allowed disabled:opacity-50"
+          class="flex-1 rounded-md bg-gradient-to-r from-[#2563EB] to-[#7C3AED] px-3 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
         >
           ▶ Start Agent
         </button>
         <button
           id="btnStop"
-          class="flex-1 rounded-md bg-danger px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#e14f4f] disabled:cursor-not-allowed disabled:opacity-50"
+          class="flex-1 rounded-md bg-gradient-to-r from-[#ef4444] to-[#b91c1c] px-3 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
         >
           ⏹ Stop Agent
         </button>
@@ -87,29 +98,29 @@
       <div class="flex gap-2">
         <button
           id="btnRequestControl"
-          class="flex-1 rounded-md bg-[#f0a500] px-3 py-2.5 text-sm font-semibold text-[#101010] transition-colors hover:bg-[#d99400] disabled:cursor-not-allowed disabled:opacity-50"
+          class="flex-1 rounded-md bg-gradient-to-r from-[#2563EB] to-[#7C3AED] px-3 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
         >
           🖱️ Request Control
         </button>
         <button
           id="btnReleaseControl"
-          class="flex-1 rounded-md bg-[#3f6fdd] px-3 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#335fbe] disabled:cursor-not-allowed disabled:opacity-50"
+          class="flex-1 rounded-md bg-gradient-to-r from-[#2563EB] to-[#7C3AED] px-3 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-50"
           disabled
         >
           ↩️ Release Control
         </button>
       </div>
 
-      <div class="rounded-md bg-[#111318] p-2.5">
-        <div class="mb-1.5 text-xs uppercase tracking-[0.08em] text-text-muted">
+      <div class="rounded-xl border border-border-light bg-[#0b1327] p-3">
+        <div class="mb-1.5 text-xs font-semibold uppercase tracking-[0.12em] text-text-muted">
           Connected Users
         </div>
-        <div id="users-list" class="flex flex-col gap-1 text-xs">No users yet</div>
+        <div id="users-list" class="flex flex-col gap-1 text-xs text-[#eef4ff]">No users yet</div>
       </div>
 
       <div
         id="log"
-        class="flex-1 overflow-y-auto rounded-md border border-border-light bg-bg-dark p-2.5 text-xs font-mono"
+        class="flex-1 overflow-y-auto rounded-xl border border-border-light bg-bg-dark p-3 text-xs font-mono text-[#eaf1ff]"
       ></div>
     </div>
   </div>

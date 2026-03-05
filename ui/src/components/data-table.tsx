@@ -4,7 +4,8 @@ import { useMemo, useState } from "react";
 
 type SortDirection = "asc" | "desc";
 
-type Column<T> = {
+export type Column<T> = {
+  id?: string;
   key: keyof T;
   label: string;
   sortable?: boolean;
@@ -113,7 +114,7 @@ export function DataTable<T extends Record<string, unknown>>({
                 </th>
               )}
               {columns.map((column) => (
-                <th key={String(column.key)} className="px-3 py-3">
+                <th key={column.id || String(column.key)} className="px-3 py-3">
                   {column.sortable ? (
                     <button
                       type="button"
@@ -156,7 +157,7 @@ export function DataTable<T extends Record<string, unknown>>({
                     </td>
                   )}
                   {columns.map((column) => (
-                    <td key={String(column.key)} className="px-3 py-3 align-top">
+                    <td key={column.id || String(column.key)} className="px-3 py-3 align-top">
                       {column.render ? column.render(row) : String(row[column.key] ?? "")}
                     </td>
                   ))}

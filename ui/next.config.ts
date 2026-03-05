@@ -6,14 +6,8 @@ const nextConfig: NextConfig = {
   async redirects() {
     return [
       {
-        source: "/",
-        destination: "/transformer/schema",
-        permanent: false,
-        basePath: false,
-      },
-      {
-        source: "/",
-        destination: "/schema",
+        source: "/workbench",
+        destination: "/workbench/rules",
         permanent: false,
       },
     ];
