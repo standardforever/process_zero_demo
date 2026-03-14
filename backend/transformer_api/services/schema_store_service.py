@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from ..models.schema_store import ERPSchemaColumn, PostTransformationAction, SchemaStore, SchemaStoreMetadata
+from models.schema_store import ERPSchemaColumn, PostTransformationAction, SchemaStore, SchemaStoreMetadata
 
 SCHEMA_STORE_FILE = Path(__file__).resolve().parents[2] / "live_view_vnc" / "transformation_rules.json"
 

@@ -336,6 +336,27 @@ class LiveViewServer:
         await asyncio.to_thread(driver.quit)
 
 
+# async def _main() -> None:
+#     server = LiveViewServer()
+
+#     loop = asyncio.get_running_loop()
+#     stop_event = asyncio.Event()
+
+#     def _stop() -> None:
+#         stop_event.set()
+
+#     for sig in (signal.SIGINT, signal.SIGTERM):
+#         loop.add_signal_handler(sig, _stop)
+
+#     server_task = asyncio.create_task(server.run())
+#     await stop_event.wait()
+#     server_task.cancel()
+#     try:
+#         await server_task
+#     except asyncio.CancelledError:
+#         pass
+
+
 async def _main() -> None:
     server = LiveViewServer()
 
@@ -349,7 +370,13 @@ async def _main() -> None:
         loop.add_signal_handler(sig, _stop)
 
     server_task = asyncio.create_task(server.run())
+
     await stop_event.wait()
+
+    # stop agent/browser first
+    await server.stop_agent()
+
+    # then stop websocket server task
     server_task.cancel()
     try:
         await server_task

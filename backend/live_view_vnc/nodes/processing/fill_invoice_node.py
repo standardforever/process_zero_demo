@@ -120,21 +120,23 @@ async def fill_invoice_node(state: WorkflowGraphState) -> WorkflowGraphState:
         current_url = page_info.url if hasattr(page_info, 'url') else page_info.get("url", "")
         
         if "customer-invoices/new" not in current_url:
-            print(f"  ✗ Not on invoice page!")
+            await page.goto("https://process-zero.odoo.com/odoo/customer-invoices/new")
+            await asyncio.sleep(3)
+            print(f"  ✗ Not on invoice page!, {current_url}")
             
-            updated_workflows = workflows.copy()
-            updated_workflows[odoo_index] = {
-                **odoo_workflow,
-                "page_valid": False,
-                "setup_complete": False
-            }
+            # updated_workflows = workflows.copy()
+            # updated_workflows[odoo_index] = {
+            #     **odoo_workflow,
+            #     "page_valid": False,
+            #     "setup_complete": False
+            # }
             
-            return {
-                **state,
-                "workflows": updated_workflows,
-                "error_message": "Not on invoice page",
-                "current_step": "setup_odoo"
-            }
+            # return {
+            #     **state,
+            #     "workflows": updated_workflows,
+            #     "error_message": "Not on invoice page",
+            #     "current_step": "setup_odoo"
+            # }
         
         print(f"  ✓ On invoice page")
         

@@ -5,7 +5,7 @@ import os
 import re
 from typing import Any
 
-from ..models.rules import TransformRules
+from models.rules import TransformRules
 from .rules_service import load_rules, save_rules
 
 UPDATE_SYSTEM_PROMPT = """

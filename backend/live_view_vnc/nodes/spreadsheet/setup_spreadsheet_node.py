@@ -513,11 +513,15 @@ async def setup_spreadsheet_node(state: WorkflowGraphState) -> WorkflowGraphStat
             ps = await evaluate(page, get_page_state_script())
             current_url = ps.get("url", "")
             print(f"  📍 Loaded: {current_url[:90]}...")
+            # print('\n\n\n\n')
+            # print(ps)
+            # print('\n\n\n\n')
+            # exit()
 
             if   ps.get("has_crm"):            return _success()
             elif ps.get("has_stay_signed_in"): start = "stay_signed_in"
-            elif ps.get("has_password_field"): start = "password"
             elif ps.get("has_email_field"):    start = "email"
+            elif ps.get("has_password_field"): start = "password"
             elif ps.get("on_sharepoint"):      start = "wait_sp"
             else:                              start = "email"
 

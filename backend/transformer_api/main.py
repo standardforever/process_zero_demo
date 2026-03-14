@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from .routers import chat, data, rules, rules_ai, schema_store, transform
+from routers import chat, data, rules, rules_ai, schema_store, transform
 
 app = FastAPI(
     title="CRM-to-ERP Transformer API",
@@ -44,3 +44,8 @@ def api_root() -> dict[str, str]:
         "docs": "./docs",
         "openapi": "./openapi.json",
     }
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, port= 8000)

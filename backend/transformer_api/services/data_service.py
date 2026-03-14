@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from ..models.crm_record import CRMRecord
+from models.crm_record import CRMRecord
 
 ROOT_DIR = Path(__file__).resolve().parents[3]
 VISIBLE_ROWS_FILE = ROOT_DIR / "visible_rows.json"

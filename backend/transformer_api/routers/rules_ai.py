@@ -5,8 +5,8 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from ..services.rules_ai_service import copilot_assist, explain_rules_for_situation, preview_or_apply_rules_update
-from ..services.schema_store_service import get_schema_store_status
+from services.rules_ai_service import copilot_assist, explain_rules_for_situation, preview_or_apply_rules_update
+from services.schema_store_service import get_schema_store_status
 
 router = APIRouter(prefix="/rules/ai", tags=["rules-ai"])
 

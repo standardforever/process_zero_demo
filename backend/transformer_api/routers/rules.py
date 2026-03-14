@@ -5,7 +5,7 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Request
 
-from ..services.rules_service import RuleNotFoundError, get_rule_type, load_rules, save_rules, update_rule_type
+from services.rules_service import RuleNotFoundError, get_rule_type, load_rules, save_rules, update_rule_type
 
 router = APIRouter(prefix="/rules", tags=["rules"])
 

@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
-from ..models.rules import TransformRules
+from models.rules import TransformRules
 
 RULES_FILE = Path(__file__).resolve().parents[2] / "live_view_vnc" / "transformation_agent.json"
 LEGACY_RULES_FILE = Path(__file__).resolve().parents[1] / "data" / "rules.json"

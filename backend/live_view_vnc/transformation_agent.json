@@ -1,6 +1,6 @@
 {
   "version": "1.0",
-  "lastUpdated": "2026-03-05T08:05:46Z",
+  "lastUpdated": "2026-03-13T19:51:25Z",
   "customerNameMapping": {
     "Universal Supplies": "Universal Supplies Limited",
     "Red Internet": "Red Internet Limited"
@@ -59,7 +59,7 @@
     "fallbackSourceIdField": "sales_request_ref",
     "useInvoiceTotalWithoutDecimals": true
   },
-  
+  "notificationEmail": null,
   "transformAgentRules": {
     "abc trading": {
       "erp_customer_name": "ABC Trading Limited",
@@ -139,7 +139,7 @@
       "terms_and_conditions": "Immediate Payment",
       "payment_method": "Manual Payment",
       "sales_person": "Joan Gold",
-      "payment_terms": "Immediate Payment: Payment is due in full immediately upon receipt of this invoice.",
+      "payment_terms": "Net 45",
       "payment_reference": "Uni3544-SO10016",
       "customer_reference": "Uni3544",
       "invoice_date": "2026-03-05",
@@ -149,7 +149,7 @@
       "erp_customer_name": "Wrath Trading Limited",
       "taxes": "20%",
       "terms_and_conditions": "15 Days",
-      "payment_method": "Manual Payment",
+      "payment_method": "Debit Card",
       "sales_person": "Alan Smith",
       "payment_terms": "15 Days: Payment must be made in full within 15 days from the invoice date.",
       "payment_reference": "Wra3290-SO10017",
@@ -159,4 +159,3 @@
     }
   }
 }
-

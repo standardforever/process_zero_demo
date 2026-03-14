@@ -3,9 +3,9 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 
-from ..models.crm_record import CRMRecord
-from ..services.data_service import get_record_by_sales_ref, get_records
-from ..services.transform_service import get_saved_output, save_batch_output, transform_batch, transform_record
+from models.crm_record import CRMRecord
+from services.data_service import get_record_by_sales_ref, get_records
+from services.transform_service import get_saved_output, save_batch_output, transform_batch, transform_record
 
 router = APIRouter(prefix="/transform", tags=["transform"])
 

@@ -8,8 +8,8 @@ from typing import Any
 
 from dateutil import parser
 
-from ..models.crm_record import CRMRecord
-from ..models.erp_invoice import ERPInvoice, LineItem
+from models.crm_record import CRMRecord
+from models.erp_invoice import ERPInvoice, LineItem
 from .rules_service import load_rules
 
 TRANSFORMED_OUTPUT_FILE = Path(__file__).resolve().parents[1] / "data" / "transformed.json"

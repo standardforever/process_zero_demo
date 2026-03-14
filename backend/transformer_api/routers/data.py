@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Query
 
-from ..services.data_service import get_paginated_records, get_stats, get_unique_customers
+from services.data_service import get_paginated_records, get_stats, get_unique_customers
 
 router = APIRouter(prefix="/data", tags=["data"])
 

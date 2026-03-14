@@ -5,8 +5,8 @@ from typing import Any
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel, Field
 
-from ..models.schema_store import ERPSchemaColumn, SchemaStore
-from ..services.schema_store_service import (
+from models.schema_store import ERPSchemaColumn, SchemaStore
+from services.schema_store_service import (
     SchemaStoreNotFoundError,
     SchemaStoreValidationError,
     add_crm_column,

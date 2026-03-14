@@ -1,5 +1,5 @@
 {
-  "browser_connection_url": "ws://172.18.0.2:4444/session/40659cde36e4a27453353da654f8f742/se/cdp",
+  "browser_connection_url": "ws://172.18.0.2:4444/session/b1efcabeca87da0d0bc2846c4089ee75/se/cdp",
   "workflows": [
     {
       "name": "odoo_invoice_creation",
@@ -12,10 +12,10 @@
         "username": "martinm@processzero.co.uk",
         "password": "0p9o8i7u^Y"
       },
-      "tab_id": "87D8C99872EA9F65A8032F603CBD2480",
+      "tab_id": "C82D2A68525B2797C1279D63B0B84608",
       "tab_url": "about:blank",
       "tab_title": "",
-      "browser_context_id": "1A7AED23F09A0DAC6804AFE20F70021C"
+      "browser_context_id": "0296662FE43709782E8255FB3F172B66"
     },
     {
       "name": "sharepoint_crm_navigation",
@@ -28,10 +28,10 @@
         "email": "yusuf@clickbuy.ai",
         "password": "Engr@Bash#123m"
       },
-      "tab_id": "D40CCD9084D49A5A8F6F5C2EC21DD4B3",
+      "tab_id": "8D407E5069B1A5D46CF32E1E02C3DACC",
       "tab_url": "about:blank",
       "tab_title": "",
-      "browser_context_id": "1A7AED23F09A0DAC6804AFE20F70021C"
+      "browser_context_id": "0296662FE43709782E8255FB3F172B66"
     }
   ],
   "global_settings": {
