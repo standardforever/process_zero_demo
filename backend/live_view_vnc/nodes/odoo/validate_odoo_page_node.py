@@ -8,7 +8,7 @@ async def validate_odoo_page_node(state: WorkflowGraphState) -> WorkflowGraphSta
     Validate Odoo page is at the correct location and ready
     
     Target: New invoice creation form
-    Expected URL: https://process-zero.odoo.com/odoo/customer-invoices/new
+    Expected URL: https://standeva.odoo.com/odoo/customer-invoices/new
     
     Checks:
     1. URL contains 'customer-invoices/new'
@@ -89,7 +89,7 @@ async def validate_odoo_page_node(state: WorkflowGraphState) -> WorkflowGraphSta
         # ============================================
         
         TARGET_URL_PART = "customer-invoices/new"
-        EXPECTED_DOMAIN = "process-zero.odoo.com"
+        EXPECTED_DOMAIN = "standeva.odoo.com/"
         
         validation_results = []
         

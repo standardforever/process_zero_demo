@@ -504,8 +504,8 @@ async def setup_odoo_node(state: WorkflowGraphState) -> WorkflowGraphState:
 
     page = odoo_workflow.get("page_instance")
     variables = odoo_workflow.get("variables", {})
-    username = variables.get("username", "martinm@processzero.co.uk")
-    password = variables.get("password", "0p9o8i7u^Y")
+    username = variables.get("username", "standard.forever123@gmail.com")
+    password = variables.get("password", "8sf$rt*Fu3f#+.u")
     
 
     if not page:
@@ -555,8 +555,8 @@ async def setup_odoo_node(state: WorkflowGraphState) -> WorkflowGraphState:
         if start == "navigate":
             await browser.on_SwitchTabEvent(event=SwitchTabEvent(target_id=tab_id))
             print("\n  [1/7] Navigating to Odoo...")
-            await evaluate(page, get_navigate_script("https://process-zero.odoo.com/"))
-            r = await evaluate(page, get_wait_for_url_script("process-zero.odoo.com", timeout_ms=15000))
+            await evaluate(page, get_navigate_script("https://standeva.odoo.com/"))
+            r = await evaluate(page, get_wait_for_url_script("standeva.odoo.com", timeout_ms=15000))
             if not r.get("success"):
                 return _fail(f"Odoo did not load: {r.get('error')}")
             current_url = r.get("url", "")
@@ -606,7 +606,7 @@ async def setup_odoo_node(state: WorkflowGraphState) -> WorkflowGraphState:
             r = await evaluate(page, get_click_invoicing_app_script())
             if not r.get("success"):
                 print(f"  ⚠️  Click failed ({r.get('error')}) — direct nav fallback...")
-                await evaluate(page, get_navigate_script("https://process-zero.odoo.com/odoo/accounting"))
+                await evaluate(page, get_navigate_script("https://standeva.odoo.com/odoo/accounting"))
 
             r = await evaluate(page, get_wait_for_url_script("/accounting", timeout_ms=15000))
             if not r.get("success"):
@@ -644,7 +644,7 @@ async def setup_odoo_node(state: WorkflowGraphState) -> WorkflowGraphState:
             if not r.get("success"):
                 print(f"  ⚠️  Menu click failed ({r.get('error')}) — direct nav fallback...")
                 await evaluate(page, get_navigate_script(
-                    "https://process-zero.odoo.com/odoo/accounting/customer-invoices"
+                    "https://standeva.odoo.com/odoo/accounting/customer-invoices"
                 ))
             r = await evaluate(page, get_wait_for_url_script("customer-invoices", timeout_ms=12000))
             if not r.get("success"):
@@ -666,7 +666,7 @@ async def setup_odoo_node(state: WorkflowGraphState) -> WorkflowGraphState:
             if not r.get("success"):
                 print(f"  ⚠️  New button failed ({r.get('error')}) — direct nav fallback...")
                 await evaluate(page, get_navigate_script(
-                    "https://process-zero.odoo.com/odoo/customer-invoices/new"
+                    "https://standeva.odoo.com/odoo/customer-invoices/new"
                 ))
             r = await evaluate(page, get_wait_for_url_script("customer-invoices/new", timeout_ms=12000))
             if not r.get("success"):

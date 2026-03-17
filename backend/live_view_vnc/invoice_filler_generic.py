@@ -5433,9 +5433,9 @@ async def run_invoice_filler(
         )
 
         # Login and navigate to New Invoice
-        login_url = "https://process-zero.odoo.com/web/login?redirect=%2Fodoo%3F"
-        email = "martinm@processzero.co.uk"
-        password = "0p9o8i7u^Y"
+        login_url = "https://standeva.odoo.com/web/login?redirect=%2Fodoo%3F"
+        email = "standard.forever123@gmail.com"
+        password = "8sf$rt*Fu3f#+.u"
         nav_ok = await filler.login_and_navigate_to_new_invoice(login_url, email, password)
         if not nav_ok:
             print("Failed to navigate to new invoice. Aborting.")
@@ -5493,3 +5493,4 @@ async def main():
 
 if __name__ == "__main__":
     asyncio.run(main())
+

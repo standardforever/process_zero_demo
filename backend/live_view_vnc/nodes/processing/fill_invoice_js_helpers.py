@@ -589,7 +589,7 @@ def get_add_products_script(products: list) -> str:
                     const emptyRowExists = hasEmptyRow();
                     
                     if (!emptyRowExists) {{
-                        const addLineButton = Array.from(document.querySelectorAll('a[role="button"]')).find(btn => 
+                        const addLineButton = Array.from(document.querySelectorAll('a, button')).find(btn => 
                             btn.textContent.trim().toLowerCase() === 'add a line'
                         );
                         
@@ -1045,10 +1045,10 @@ def get_click_other_info_tab_script() -> str:
             // ============================================
             
             // Try multiple selectors
-            let otherInfoTab = document.querySelector('a[role="tab"][name="other_info"]') ||
-                              Array.from(document.querySelectorAll('a[role="tab"]')).find(tab => 
-                                  tab.textContent.trim().toLowerCase() === 'other info'
-                              );
+            let otherInfoTab = document.querySelector('button[role="tab"][name="other_info"]') ||
+                  Array.from(document.querySelectorAll('button[role="tab"], a[role="tab"]')).find(tab => 
+                      tab.textContent.trim().toLowerCase() === 'other info'
+                  );
             
             if (!otherInfoTab) {
                 return { success: false, error: "Other Info tab not found" };

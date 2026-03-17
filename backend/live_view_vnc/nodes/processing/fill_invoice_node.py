@@ -120,7 +120,7 @@ async def fill_invoice_node(state: WorkflowGraphState) -> WorkflowGraphState:
         current_url = page_info.url if hasattr(page_info, 'url') else page_info.get("url", "")
         
         if "customer-invoices/new" not in current_url:
-            await page.goto("https://process-zero.odoo.com/odoo/customer-invoices/new")
+            await page.goto("https://standeva.odoo.com/odoo/customer-invoices/new")
             await asyncio.sleep(3)
             print(f"  ✗ Not on invoice page!, {current_url}")
             
